@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# LoanLink - Loan Management System
 
-## Getting Started
+A comprehensive loan management system built with Next.js, React, and PostgreSQL. Manage companies, loans, payments, and users with role-based access control.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- 🔐 **Authentication & Authorization**: Secure login with role-based access (Admin, Manager, Staff)
+- 📊 **Real-time Dashboards**: Live statistics and analytics with auto-refresh
+- 🏢 **Company Management**: Full CRUD operations for company data
+- 💰 **Loan Management**: Create loans with automatic repayment schedules
+- 💳 **Payment Tracking**: Record and monitor payments and repayments
+- 👥 **User Management**: Admin-only user administration
+- 📈 **Reports & Analytics**: Comprehensive financial reports with charts
+- 🎨 **Modern UI**: Dark theme with glassmorphism effects
+- 📱 **Responsive Design**: Works on all devices
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tech Stack
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+- **Frontend**: Next.js 15.4.3, React, Tailwind CSS
+- **Backend**: Next.js API Routes
+- **Database**: PostgreSQL (Neon)
+- **Authentication**: bcrypt.js, localStorage
+- **Charts**: Chart.js, React-Chartjs-2
+- **Deployment**: Vercel
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Quick Start
 
-## Learn More
+1. **Clone the repository**
+2. **Install dependencies**: `npm install`
+3. **Set up environment variables**:
+   ```env
+   DATABASE_URL=your_postgresql_connection_string
+   ```
+4. **Run the development server**: `npm run dev`
+5. **Open** [http://localhost:3000](http://localhost:3000)
 
-To learn more about Next.js, take a look at the following resources:
+## Demo Credentials
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Admin**: `mark_barican@example.com` / `admin123`
+- **Manager**: `manager@example.com` / `manager123`
+- **Staff**: `staff@example.com` / `staff123`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
+This project is optimized for deployment on Vercel. The `vercel.json` configuration file is included for seamless deployment.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is proprietary software.

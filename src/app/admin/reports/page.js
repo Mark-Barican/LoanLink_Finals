@@ -73,9 +73,9 @@ export default function ReportsPage() {
   }
 
   function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-PH', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'PHP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
@@ -218,7 +218,7 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="relative h-screen overflow-hidden">
+    <div className="relative min-h-screen bg-slate-950 pt-20">
       {/* Background Pattern - Full Screen */}
       <div className="fixed inset-0 -z-10">
         <div className="h-full w-full bg-slate-950 [&>div]:absolute [&>div]:bottom-0 [&>div]:right-[-20%] [&>div]:top-[-10%] [&>div]:h-[500px] [&>div]:w-[500px] [&>div]:rounded-full [&>div]:bg-[radial-gradient(circle_farthest-side,rgba(34,197,94,.15),rgba(255,255,255,0))]">
@@ -226,18 +226,18 @@ export default function ReportsPage() {
         </div>
       </div>
       
-      {/* Content - Single view without scrolling */}
-      <div className="relative z-10 h-full flex items-center justify-center px-3 py-3">
-        <div className="backdrop-blur-md bg-white/10 rounded-2xl border border-white/20 p-4 w-full max-w-6xl h-full max-h-[80vh] flex flex-col">
-          <h1 className="text-lg font-bold text-green-400 mb-4 text-center">Reports & Analytics</h1>
+      {/* Content - Full width layout */}
+      <div className="relative z-10 px-4 py-3">
+        <div className="backdrop-blur-md bg-white/10 rounded-2xl border border-white/20 p-6 w-full">
+          <h1 className="text-2xl font-bold text-green-400 mb-6 text-center">Reports & Analytics</h1>
           
           {error && <p className="text-red-300 text-sm text-center mb-3">{error}</p>}
           
-          <div className="flex-1 overflow-auto">
+          <div className="space-y-6">
             {/* Key Statistics */}
-            <div className="mb-6">
-              <h2 className="text-md font-semibold text-white mb-3">Key Statistics</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-white mb-4">Key Statistics</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <Stat label="Total Users" value={stats.users} color="blue" />
                 <Stat label="Companies" value={stats.companies} color="purple" />
                 <Stat label="Active Loans" value={stats.activeLoans} color="green" />
@@ -246,9 +246,9 @@ export default function ReportsPage() {
             </div>
 
             {/* Financial Summary */}
-            <div className="mb-6">
-              <h2 className="text-md font-semibold text-white mb-3">Financial Summary</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-white mb-4">Financial Summary</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Stat label="Total Loan Amount" value={formatCurrency(stats.totalLoanAmount)} color="green" />
                 <Stat label="Total Repaid" value={formatCurrency(stats.totalRepaid)} color="blue" />
                 <Stat label="Outstanding Balance" value={formatCurrency(stats.outstandingBalance)} color="red" />
@@ -256,34 +256,34 @@ export default function ReportsPage() {
             </div>
 
             {/* Charts Row 1 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                <h3 className="text-sm font-semibold text-white mb-3">Monthly Activity</h3>
-                <div className="h-48">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                <h3 className="text-lg font-semibold text-white mb-4">Monthly Activity</h3>
+                <div className="h-64">
                   <Bar data={monthlyLoansData} options={chartOptions} />
                 </div>
               </div>
               
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                <h3 className="text-sm font-semibold text-white mb-3">User Role Distribution</h3>
-                <div className="h-48">
+              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                <h3 className="text-lg font-semibold text-white mb-4">User Role Distribution</h3>
+                <div className="h-64">
                   <Doughnut data={roleDistributionData} options={doughnutOptions} />
                 </div>
               </div>
             </div>
 
             {/* Charts Row 2 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                <h3 className="text-sm font-semibold text-white mb-3">Loan Status Distribution</h3>
-                <div className="h-48">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                <h3 className="text-lg font-semibold text-white mb-4">Loan Status Distribution</h3>
+                <div className="h-64">
                   <Doughnut data={loanStatusData} options={doughnutOptions} />
                 </div>
               </div>
               
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                <h3 className="text-sm font-semibold text-white mb-3">Repayment Status</h3>
-                <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                <h3 className="text-lg font-semibold text-white mb-4">Repayment Status</h3>
+                <div className="grid grid-cols-2 gap-4">
                   <Stat label="Paid Repayments" value={stats.paidRepayments} color="green" />
                   <Stat label="Unpaid Repayments" value={stats.unpaidRepayments} color="red" />
                   <Stat label="Payment Rate" value={`${stats.paymentRate}%`} color="blue" />
@@ -293,9 +293,9 @@ export default function ReportsPage() {
             </div>
 
             {/* Recent Activity */}
-            <div className="mb-6">
-              <h2 className="text-md font-semibold text-white mb-3">Recent Activity (This Month)</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-white mb-4">Recent Activity (This Month)</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Stat label="New Loans" value={stats.recentLoans} color="green" />
                 <Stat label="New Payments" value={stats.recentPayments} color="blue" />
                 <Stat label="Overdue Repayments" value={stats.overdueRepayments} color="red" />

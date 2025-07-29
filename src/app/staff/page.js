@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function StaffDashboard() {
   const [stats, setStats] = useState(null);
@@ -90,7 +91,7 @@ export default function StaffDashboard() {
   }
 
   return (
-    <div className="relative h-screen overflow-hidden bg-slate-950">
+    <div className="relative min-h-screen bg-slate-950 pt-20">
       {/* Background Pattern */}
       <div className="fixed inset-0 -z-10">
         <div className="h-full w-full bg-slate-950 [&>div]:absolute [&>div]:bottom-0 [&>div]:right-[-20%] [&>div]:top-[-10%] [&>div]:h-[500px] [&>div]:w-[500px] [&>div]:rounded-full [&>div]:bg-[radial-gradient(circle_farthest-side,rgba(249,115,22,.15),rgba(255,255,255,0))]">
@@ -137,7 +138,7 @@ export default function StaffDashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 px-6 pb-6 h-[calc(100vh-140px)] overflow-auto">
+      <div className="relative z-20 px-6 pb-6">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
@@ -385,13 +386,13 @@ function QuickActionButton({ title, icon, href, color }) {
   };
 
   return (
-    <a
+    <Link
       href={href}
       className={`${colors[color]} rounded-lg p-4 text-center transition-colors duration-200 flex flex-col items-center space-y-2`}
     >
       <span className="text-2xl">{icon}</span>
       <span className="text-sm font-medium">{title}</span>
-    </a>
+    </Link>
   );
 }
 

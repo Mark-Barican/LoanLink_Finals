@@ -1,4 +1,4 @@
-import pool from '../db';
+import { query } from '../db.js';
 
 function isAdminOrManager(request) {
   const role = request.headers.get('x-user-role');
@@ -6,15 +6,52 @@ function isAdminOrManager(request) {
 }
 
 export async function GET(request) {
-  const url = new URL(request.url);
-  const loan_id = url.searchParams.get('loan_id');
-  let result;
-  if (loan_id) {
-    result = await pool.query('SELECT * FROM repayments WHERE loan_id = $1 ORDER BY due_date', [loan_id]);
-  } else {
-    result = await pool.query('SELECT * FROM repayments ORDER BY due_date');
+  try {
+    const url = new URL(request.url);
+    const loan_id = url.searchParams.get('loan_id');
+    const company_id = url.searchParams.get('company_id');
+    
+    let result;
+    
+    if (company_id) {
+      // Filter by company - join with loans to get company_id
+      result = await query(`
+        SELECT r.*, l.code as loan_code, l.principal, l.interest_rate, l.term_months,
+               c.name as company_name, c.industry as company_industry
+        FROM repayments r
+        JOIN loans l ON r.loan_id = l.id
+        JOIN companies c ON l.company_id = c.id
+        WHERE l.company_id = $1
+        ORDER BY r.due_date
+      `, [company_id]);
+    } else if (loan_id) {
+      // Filter by specific loan
+      result = await query(`
+        SELECT r.*, l.code as loan_code, l.principal, l.interest_rate, l.term_months,
+               c.name as company_name, c.industry as company_industry
+        FROM repayments r
+        JOIN loans l ON r.loan_id = l.id
+        JOIN companies c ON l.company_id = c.id
+        WHERE r.loan_id = $1
+        ORDER BY r.due_date
+      `, [loan_id]);
+    } else {
+      // Get all repayments with company and loan info
+      result = await query(`
+        SELECT r.*, l.code as loan_code, l.principal, l.interest_rate, l.term_months,
+               c.name as company_name, c.industry as company_industry
+        FROM repayments r
+        JOIN loans l ON r.loan_id = l.id
+        JOIN companies c ON l.company_id = c.id
+        ORDER BY r.due_date
+      `);
+    }
+    
+    return Response.json(result.rows);
+  } catch (error) {
+    console.error('GET repayments error:', error);
+    return Response.json({ error: 'Failed to fetch repayments' }, { status: 500 });
   }
-  return new Response(JSON.stringify(result.rows), { status: 200 });
 }
 
 export async function POST(request) {

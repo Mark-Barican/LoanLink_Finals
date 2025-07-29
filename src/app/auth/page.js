@@ -6,24 +6,42 @@ export default function AuthPage() {
   const [mode, setMode] = useState("signin");
   const [user, setUser] = useState(null);
   const [showNotification, setShowNotification] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const u = localStorage.getItem("user");
-      setUser(u ? JSON.parse(u) : null);
+      if (u) {
+        const userData = JSON.parse(u);
+        setUser(userData);
+        // Automatically redirect logged-in users to their dashboard
+        setIsRedirecting(true);
+        setTimeout(() => {
+          switch (userData.role) {
+            case 'admin':
+              router.push("/admin");
+              break;
+            case 'manager':
+              router.push("/manager");
+              break;
+            case 'staff':
+              router.push("/staff");
+              break;
+            default:
+              router.push("/admin");
+          }
+        }, 100);
+      }
     }
-  }, []);
-
-  function handleSignOut() {
-    localStorage.removeItem("user");
-    setUser(null);
-    router.push("/auth");
-  }
+  }, [router]);
 
   const handleAuth = (userData) => {
     setUser(userData);
     setShowNotification(true);
+    
+    // Dispatch custom event for navbar update
+    window.dispatchEvent(new Event("userLogin"));
     
     // Hide notification after 3 seconds
     setTimeout(() => {
@@ -48,7 +66,8 @@ export default function AuthPage() {
     }, 1000);
   };
 
-  if (user) {
+  // Show loading while redirecting
+  if (isRedirecting) {
     return (
       <div className="relative h-screen">
         {/* Background Pattern */}
@@ -56,12 +75,12 @@ export default function AuthPage() {
           <div className="absolute inset-0 -z-10 h-full w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#22c55e_100%)]"></div>
         </div>
         
-        {/* Hero Content */}
+        {/* Loading Content */}
         <div className="relative z-10 flex h-full flex-col items-center justify-center px-4">
           <div className="backdrop-blur-md bg-white/10 rounded-2xl border border-white/20 p-8 w-full max-w-md flex flex-col items-center">
-            <h2 className="text-2xl font-bold text-white mb-2 text-center">Welcome, {user.email}</h2>
-            <p className="text-green-200 mb-4">Role: {user.role}</p>
-            <button onClick={handleSignOut} className="rounded-lg px-6 py-3 font-medium bg-green-400 text-slate-900 hover:bg-green-300 transition-colors">Sign Out</button>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mb-4"></div>
+            <h2 className="text-xl font-bold text-white mb-2 text-center">Redirecting to Dashboard...</h2>
+            <p className="text-green-200 text-center">Welcome back, {user?.email}</p>
           </div>
         </div>
       </div>

@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 
-export default function LoanDetails() {
+export default function LoanDetails({ params }) {
+  const { id } = params;
   const [loan, setLoan] = useState(null);
   const [repayments, setRepayments] = useState([]);
   const [payments, setPayments] = useState([]);
@@ -10,8 +11,32 @@ export default function LoanDetails() {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentForm, setPaymentForm] = useState({ repayment_id: "", amount: "", payment_date: "", method: "cash" });
   const router = useRouter();
-  const params = useParams();
-  const id = params?.id;
+
+  const fetchLoan = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/loans`);
+      const loans = await res.json();
+      setLoan(loans.find(l => l.id === id));
+    } catch {
+      setError("Failed to load loan");
+    }
+  }, [id]);
+
+  const fetchRepayments = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/repayments?loan_id=${id}`);
+      setRepayments(await res.json());
+    } catch {
+      setError("Failed to load repayments");
+    }
+  }, [id]);
+
+  const fetchPayments = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/payments`);
+      setPayments(await res.json());
+    } catch {}
+  }, []);
 
   useEffect(() => {
     const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user")) : null;
@@ -22,33 +47,7 @@ export default function LoanDetails() {
     fetchLoan();
     fetchRepayments();
     fetchPayments();
-  }, [id, router]);
-
-  async function fetchLoan() {
-    try {
-      const res = await fetch(`/api/loans`);
-      const loans = await res.json();
-      setLoan(loans.find(l => l.id === id));
-    } catch {
-      setError("Failed to load loan");
-    }
-  }
-
-  async function fetchRepayments() {
-    try {
-      const res = await fetch(`/api/repayments?loan_id=${id}`);
-      setRepayments(await res.json());
-    } catch {
-      setError("Failed to load repayments");
-    }
-  }
-
-  async function fetchPayments() {
-    try {
-      const res = await fetch(`/api/payments`);
-      setPayments(await res.json());
-    } catch {}
-  }
+  }, [id, router, fetchLoan, fetchRepayments, fetchPayments]);
 
   async function markRepaymentPaid(rid) {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -84,7 +83,7 @@ export default function LoanDetails() {
   }
 
   return (
-    <div className="relative h-screen overflow-hidden">
+    <div className="relative min-h-screen bg-slate-950 pt-20">
       {/* Background Pattern - Full Screen */}
       <div className="fixed inset-0 -z-10">
         <div className="h-full w-full bg-slate-950 [&>div]:absolute [&>div]:bottom-0 [&>div]:right-[-20%] [&>div]:top-[-10%] [&>div]:h-[500px] [&>div]:w-[500px] [&>div]:rounded-full [&>div]:bg-[radial-gradient(circle_farthest-side,rgba(34,197,94,.15),rgba(255,255,255,0))]">
@@ -93,7 +92,7 @@ export default function LoanDetails() {
       </div>
       
       {/* Content - Single view without scrolling */}
-      <div className="relative z-10 h-full flex items-center justify-center px-3 py-3">
+      <div className="relative z-10 flex items-center justify-center px-3 py-3">
         <div className="backdrop-blur-md bg-white/10 rounded-2xl border border-white/20 p-4 w-full max-w-6xl h-full max-h-[80vh] flex flex-col overflow-auto">
           <h1 className="text-lg font-bold text-green-400 mb-4 text-center">Loan Details</h1>
           {error && <p className="text-red-300 text-sm text-center mb-3">{error}</p>}
@@ -129,12 +128,20 @@ export default function LoanDetails() {
                     <td className="py-1.5 px-2">${r.amount}</td>
                     <td className="py-1.5 px-2">
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${r.status === 'paid' ? 'bg-green-400/20 text-green-400 border border-green-400/30' : 'bg-red-400/20 text-red-400 border border-red-400/30'}`}>
-                        {r.status === 'paid' ? 'Paid' : 'Unpaid'}
+                        {r.status}
                       </span>
                     </td>
-                    <td className="py-1.5 px-2 flex gap-1">
-                      {r.status !== 'paid' && <button onClick={() => markRepaymentPaid(r.id)} className="bg-green-400/20 hover:bg-green-400/30 text-green-400 rounded px-2 py-1 text-xs font-semibold border border-green-400/30">Mark Paid</button>}
-                      <button onClick={() => openPaymentForm(r.id)} className="bg-blue-400/20 hover:bg-blue-400/30 text-blue-400 rounded px-2 py-1 text-xs font-semibold border border-blue-400/30">Record Payment</button>
+                    <td className="py-1.5 px-2">
+                      {r.status === 'unpaid' && (
+                        <div className="flex gap-1">
+                          <button onClick={() => markRepaymentPaid(r.id)} className="bg-green-400/20 hover:bg-green-400/30 text-green-400 rounded px-2 py-1 text-xs font-semibold border border-green-400/30">
+                            Mark Paid
+                          </button>
+                          <button onClick={() => openPaymentForm(r.id)} className="bg-blue-400/20 hover:bg-blue-400/30 text-blue-400 rounded px-2 py-1 text-xs font-semibold border border-blue-400/30">
+                            Record Payment
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -181,11 +188,11 @@ export default function LoanDetails() {
                     <option value="cash">Cash</option>
                     <option value="bank_transfer">Bank Transfer</option>
                     <option value="check">Check</option>
-                    <option value="online">Online</option>
+                    <option value="credit_card">Credit Card</option>
                   </select>
                 </label>
                 <div className="flex gap-2 mt-2">
-                  <button type="submit" className="bg-green-400 hover:bg-green-300 text-slate-900 rounded px-4 py-2 text-sm font-semibold flex-1 transition-colors">Save</button>
+                  <button type="submit" className="bg-green-400 hover:bg-green-300 text-slate-900 rounded px-4 py-2 text-sm font-semibold flex-1 transition-colors">Record Payment</button>
                   <button type="button" onClick={() => setShowPaymentForm(false)} className="bg-white/20 hover:bg-white/30 text-white rounded px-4 py-2 text-sm font-semibold flex-1 transition-colors">Cancel</button>
                 </div>
               </form>

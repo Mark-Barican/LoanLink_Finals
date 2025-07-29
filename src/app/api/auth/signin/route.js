@@ -1,71 +1,69 @@
-import pool from '../../db';
+import { query } from '../../db.js';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request) {
   try {
     const { email, password } = await request.json();
+    console.log('Login attempt:', { email, password: password ? '***' : 'missing' });
+    
     if (!email || !password) {
-      return new Response(JSON.stringify({ error: 'Email and password required.' }), { status: 400 });
+      return Response.json({ error: 'Email and password required.' }, { status: 400 });
     }
 
+    // Define demo users with their correct passwords
+    const demoUsers = {
+      'mark_barican@example.com': { password: 'admin123', role: 'admin', department: 'operations' },
+      'manager@example.com': { password: 'manager123', role: 'manager', department: 'operations' },
+      'staff@example.com': { password: 'staff123', role: 'staff', department: 'operations' }
+    };
+
+    // Check if this is a demo user
+    const isDemoUser = demoUsers[email];
+    
     // First, check if user exists in our database
-    let result = await pool.query('SELECT id, email, password_hash, role, department, created_at FROM users WHERE email = $1', [email]);
+    let result = await query('SELECT id, email, password_hash, role, department, created_at FROM users WHERE email = $1', [email]);
     
     if (result.rows.length === 0) {
-      // User doesn't exist in our database, but might exist in Neon Auth
-      // For now, let's create a default user with the email (you can set password later)
-      // This is a temporary solution - you should sync users properly
-      const defaultPassword = 'changeme123'; // Temporary password
-      const hashed = await bcrypt.hash(defaultPassword, 10);
-      
-      // Determine role based on email
-      let role = 'staff';
-      let department = 'operations';
-      
-      if (email === 'mark_barican@example.com') {
-        role = 'admin';
-        department = 'operations';
-      } else if (email === 'manager_demo@example.com') {
-        role = 'manager';
-        department = 'operations';
-      } else if (email === 'staff_demo@example.com') {
-        role = 'staff';
-        department = 'operations';
+      // User doesn't exist, create them if they're a demo user
+      if (isDemoUser) {
+        console.log('Creating demo user:', email);
+        const hashed = await bcrypt.hash(isDemoUser.password, 10);
+        
+        result = await query(
+          'INSERT INTO users (email, password_hash, role, department) VALUES ($1, $2, $3, $4) RETURNING id, email, role, department, created_at',
+          [email, hashed, isDemoUser.role, isDemoUser.department]
+        );
+      } else {
+        return Response.json({ error: 'User not found.' }, { status: 401 });
       }
-      
-      // Insert the user
-      result = await pool.query(
-        'INSERT INTO users (email, password_hash, role, department) VALUES ($1, $2, $3, $4) RETURNING id, email, role, department, created_at',
-        [email, hashed, role, department]
-      );
     }
 
     const user = result.rows[0];
+    console.log('User found:', { id: user.id, email: user.email, role: user.role });
     
-    // For now, let's allow login with any password for these demo users
-    // In production, you should properly sync passwords from Neon Auth
+    // Verify password
     let valid = false;
     
-    if (email === 'mark_barican@example.com' && password === 'markpogi123') {
-      valid = true;
-    } else if (email === 'manager_demo@example.com' && password === 'manager123') {
-      valid = true;
-    } else if (email === 'staff_demo@example.com' && password === 'staff123') {
-      valid = true;
+    if (isDemoUser) {
+      // For demo users, check against the known password
+      valid = password === isDemoUser.password;
     } else {
       // For other users, check password hash
       valid = await bcrypt.compare(password, user.password_hash);
     }
     
     if (!valid) {
-      return new Response(JSON.stringify({ error: 'Invalid credentials.' }), { status: 401 });
+      console.log('Invalid password for user:', email);
+      return Response.json({ error: 'Invalid credentials.' }, { status: 401 });
     }
 
+    console.log('Login successful for user:', email);
+    
     // Exclude password_hash from response
     const { password_hash, ...userInfo } = user;
-    return new Response(JSON.stringify(userInfo), { status: 200 });
+    return Response.json(userInfo);
   } catch (err) {
     console.error('Signin error:', err);
-    return new Response(JSON.stringify({ error: 'Server error.' }), { status: 500 });
+    return Response.json({ error: 'Server error.' }, { status: 500 });
   }
 } 
