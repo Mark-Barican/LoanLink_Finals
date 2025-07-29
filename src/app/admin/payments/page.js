@@ -478,7 +478,7 @@ export default function PaymentManagement() {
                 {/* No results message */}
                 {showDropdown && searchTerm && filteredCompanies.length === 0 && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800/95 backdrop-blur-md border border-white/20 rounded-lg shadow-xl z-10 px-4 py-3 text-white/60">
-                    No companies found matching &quot;{searchTerm}&quot;
+                    No companies found matching &ldquo;{searchTerm}&rdquo;
                   </div>
                 )}
               </div>
@@ -704,7 +704,7 @@ export default function PaymentManagement() {
                           company.industry.toLowerCase().includes(form.company_search.toLowerCase())
                         ).length === 0 && (
                           <div className="px-4 py-3 text-white/60 text-center">
-                            No companies found matching &quot;{form.company_search}&quot;
+                            No companies found matching &ldquo;{form.company_search}&rdquo;
                           </div>
                         )}
                       </div>
