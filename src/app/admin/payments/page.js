@@ -478,7 +478,7 @@ export default function PaymentManagement() {
                 {/* No results message */}
                 {showDropdown && searchTerm && filteredCompanies.length === 0 && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800/95 backdrop-blur-md border border-white/20 rounded-lg shadow-xl z-10 px-4 py-3 text-white/60">
-                    No companies found matching &ldquo;{searchTerm}&rdquo;
+                    No companies found matching {searchTerm};
                   </div>
                 )}
               </div>
