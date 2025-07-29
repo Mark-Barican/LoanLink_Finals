@@ -36,6 +36,7 @@ export default function RepaymentManagement() {
     }
   }, [selectedCompany]);
 
+  // Add fetchCompanies and fetchLoans to dependencies for exhaustive-deps
   useEffect(() => {
     const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user")) : null;
     if (!user || (user.role !== "admin" && user.role !== "manager")) {
@@ -45,7 +46,7 @@ export default function RepaymentManagement() {
     fetchCompanies();
     fetchLoans();
     fetchRepaymentsCallback();
-  }, [router, fetchRepaymentsCallback]);
+  }, [router, fetchRepaymentsCallback, fetchCompanies, fetchLoans]);
 
   // Filter companies based on search term
   const filteredCompanies = companies.filter(company => 
@@ -453,4 +454,4 @@ export default function RepaymentManagement() {
       </div>
     </div>
   );
-} 
+}
