@@ -15,7 +15,27 @@ export default function RepaymentManagement() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // Define fetchRepayments with useCallback at the top level
+  // --- MOVE THESE CALLBACKS ABOVE useEffect ---
+  const fetchCompanies = useCallback(async () => {
+    try {
+      const res = await fetch("/api/companies");
+      const data = await res.json();
+      setCompanies(data);
+    } catch (error) {
+      console.error("Failed to fetch companies:", error);
+    }
+  }, []);
+
+  const fetchLoans = useCallback(async () => {
+    try {
+      const res = await fetch("/api/loans");
+      const data = await res.json();
+      setLoans(data);
+    } catch (error) {
+      console.error("Failed to fetch loans:", error);
+    }
+  }, []);
+
   const fetchRepaymentsCallback = useCallback(async () => {
     setLoading(true);
     try {
@@ -36,7 +56,7 @@ export default function RepaymentManagement() {
     }
   }, [selectedCompany]);
 
-  // Add fetchCompanies and fetchLoans to dependencies for exhaustive-deps
+  // --- Now use them in useEffect safely ---
   useEffect(() => {
     const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user")) : null;
     if (!user || (user.role !== "admin" && user.role !== "manager")) {
@@ -76,28 +96,6 @@ export default function RepaymentManagement() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
-  const fetchCompanies = useCallback(async () => {
-    try {
-      const res = await fetch("/api/companies");
-      const data = await res.json();
-      setCompanies(data);
-    } catch (error) {
-      console.error("Failed to fetch companies:", error);
-    }
-    setOpen(true)
-}, []);
-
-  const fetchLoans = useCallback(async () => {
-    try {
-      const res = await fetch("/api/loans");
-      const data = await res.json();
-      setLoans(data);
-    } catch (error) {
-      console.error("Failed to fetch loans:", error);
-    }
-  setOpen(true)
-}, []);
 
   useEffect(() => {
     fetchRepaymentsCallback();
