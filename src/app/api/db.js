@@ -17,6 +17,9 @@ const pool = new Pool({
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
+  // Additional production optimizations
+  allowExitOnIdle: true,
+  maxUses: 7500,
 });
 
 // Test the connection
@@ -29,11 +32,20 @@ pool.on('error', (err) => {
 export default pool;
 
 export async function query(text, params) {
+  const start = Date.now();
   try {
     const result = await pool.query(text, params);
+    const duration = Date.now() - start;
+    console.log('Executed query', { text, duration, rows: result.rowCount });
     return result;
   } catch (error) {
     console.error('Database query error:', error);
     throw error;
   }
-} 
+}
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+  pool.end();
+  process.exit(0);
+}); 

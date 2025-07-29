@@ -15,7 +15,7 @@ export default function RepaymentManagement() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // --- MOVE THESE CALLBACKS ABOVE useEffect ---
+  // Define fetch functions with useCallback
   const fetchCompanies = useCallback(async () => {
     try {
       const res = await fetch("/api/companies");
@@ -56,7 +56,7 @@ export default function RepaymentManagement() {
     }
   }, [selectedCompany]);
 
-  // --- Now use them in useEffect safely ---
+  // Use them in useEffect safely
   useEffect(() => {
     const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user")) : null;
     if (!user || (user.role !== "admin" && user.role !== "manager")) {
@@ -117,7 +117,7 @@ export default function RepaymentManagement() {
     try {
       const res = await fetch("/api/repayments", {
         method,
-      headers: { "Content-Type": "application/json", "x-user-role": user.role },
+        headers: { "Content-Type": "application/json", "x-user-role": user.role },
         body: JSON.stringify(body),
       });
       
@@ -127,7 +127,7 @@ export default function RepaymentManagement() {
       }
       
       setShowForm(false);
-    fetchRepaymentsCallback();
+      fetchRepaymentsCallback();
     } catch (error) {
       setError(error.message);
     }
@@ -139,16 +139,16 @@ export default function RepaymentManagement() {
     
     try {
       const res = await fetch("/api/repayments", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json", "x-user-role": user.role },
-      body: JSON.stringify({ id }),
-    });
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", "x-user-role": user.role },
+        body: JSON.stringify({ id }),
+      });
       
       if (!res.ok) {
         throw new Error("Failed to delete repayment");
       }
       
-    fetchRepaymentsCallback();
+      fetchRepaymentsCallback();
     } catch (error) {
       setError(error.message);
     }
@@ -299,9 +299,9 @@ export default function RepaymentManagement() {
                   <th className="py-3 px-4">Due Date</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+                </tr>
+              </thead>
+              <tbody>
                 {loading ? (
                   <tr>
                     <td colSpan="6" className="py-8 text-center text-white">Loading repayments...</td>
@@ -348,12 +348,12 @@ export default function RepaymentManagement() {
                             Delete
                           </button>
                         </div>
-                </td>
-              </tr>
+                      </td>
+                    </tr>
                   ))
                 )}
-          </tbody>
-        </table>
+              </tbody>
+            </table>
           </div>
           
           {/* Add/Edit Form Modal */}

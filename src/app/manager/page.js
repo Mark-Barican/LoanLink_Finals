@@ -1,7 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import dynamic from "next/dynamic";
+
+// Dynamically import Link to avoid prerendering issues
+const DynamicLink = dynamic(() => import("next/link"), { ssr: false });
 
 export default function ManagerDashboard() {
   const [stats, setStats] = useState(null);
@@ -386,13 +389,13 @@ function QuickActionButton({ title, icon, href, color }) {
   };
 
   return (
-    <Link
+    <DynamicLink
       href={href}
       className={`${colors[color]} rounded-lg p-4 text-center transition-colors duration-200 flex flex-col items-center space-y-2`}
     >
       <span className="text-2xl">{icon}</span>
       <span className="text-sm font-medium">{title}</span>
-    </Link>
+    </DynamicLink>
   );
 }
 
