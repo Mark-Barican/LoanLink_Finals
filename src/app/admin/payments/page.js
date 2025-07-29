@@ -28,13 +28,13 @@ export default function PaymentManagement() {
   // Define fetch functions with useCallback at the top level
   const fetchCompaniesCallback = useCallback(async () => {
     try {
-      console.log('🔍 Fetching companies...');
+      console.log("🔍 Fetching companies...");
       const res = await fetch("/api/companies");
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
       const data = await res.json();
-      console.log('✅ Companies fetched:', data.length, 'companies');
+      console.log("✅ Companies fetched:", data.length, "companies");
       setCompanies(data);
     } catch (error) {
       console.error("❌ Failed to fetch companies:", error);
@@ -478,7 +478,7 @@ export default function PaymentManagement() {
                 {/* No results message */}
                 {showDropdown && searchTerm && filteredCompanies.length === 0 && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800/95 backdrop-blur-md border border-white/20 rounded-lg shadow-xl z-10 px-4 py-3 text-white/60">
-                    No companies found matching {searchTerm};
+                    No companies found matching &ldquo;{searchTerm}&rdquo;
                   </div>
                 )}
               </div>
