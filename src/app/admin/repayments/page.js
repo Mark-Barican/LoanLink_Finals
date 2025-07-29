@@ -77,7 +77,7 @@ export default function RepaymentManagement() {
     };
   }, []);
 
-  async function fetchCompanies() {
+  const fetchCompanies = useCallback(async () => {
     try {
       const res = await fetch("/api/companies");
       const data = await res.json();
@@ -85,9 +85,10 @@ export default function RepaymentManagement() {
     } catch (error) {
       console.error("Failed to fetch companies:", error);
     }
-  }
+    setOpen(true)
+}, []);
 
-  async function fetchLoans() {
+  const fetchLoans = useCallback(async () => {
     try {
       const res = await fetch("/api/loans");
       const data = await res.json();
@@ -95,7 +96,8 @@ export default function RepaymentManagement() {
     } catch (error) {
       console.error("Failed to fetch loans:", error);
     }
-  }
+  setOpen(true)
+}, []);
 
   useEffect(() => {
     fetchRepaymentsCallback();
