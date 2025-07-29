@@ -9,10 +9,14 @@ if (!process.env.DATABASE_URL) {
 // Use environment variables for security
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/loanlink',
-  // Add SSL for Neon (only if using Neon)
-  ssl: process.env.DATABASE_URL?.includes('neon') ? {
+  // Add SSL for production (Vercel, Neon, etc.)
+  ssl: process.env.NODE_ENV === 'production' ? {
     rejectUnauthorized: false,
   } : false,
+  // Connection pool settings for better performance
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
 // Test the connection

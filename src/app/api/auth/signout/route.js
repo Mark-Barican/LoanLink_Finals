@@ -1,3 +1,3 @@
 export async function POST() {
-  return new Response(JSON.stringify({ message: 'Sign out handled on client.' }), { status: 200 });
+  return Response.json({ message: 'Sign out handled on client.' }, { status: 200 });
 } 

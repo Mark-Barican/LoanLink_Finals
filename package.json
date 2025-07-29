@@ -6,10 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "setup-db": "node setup-database.js",
-    "migrate-db": "node migrate-db.js",
-    "add-demo-data": "node add-demo-data.js"
+    "lint": "next lint"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
