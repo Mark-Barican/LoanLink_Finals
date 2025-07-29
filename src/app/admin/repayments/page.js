@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 export default function RepaymentManagement() {
@@ -15,6 +15,27 @@ export default function RepaymentManagement() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // Define fetchRepayments with useCallback at the top level
+  const fetchRepaymentsCallback = useCallback(async () => {
+    setLoading(true);
+    try {
+      const url = selectedCompany 
+        ? `/api/repayments?company_id=${selectedCompany}`
+        : "/api/repayments";
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error('Failed to load repayments');
+      }
+      const data = await res.json();
+      setRepayments(data);
+    } catch (error) {
+      setError("Failed to load repayments");
+      console.error("Fetch repayments error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedCompany]);
+
   useEffect(() => {
     const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user")) : null;
     if (!user || (user.role !== "admin" && user.role !== "manager")) {
@@ -24,10 +45,6 @@ export default function RepaymentManagement() {
     fetchCompanies();
     fetchLoans();
   }, [router]);
-
-  useEffect(() => {
-    fetchRepayments();
-  }, [selectedCompany]);
 
   // Filter companies based on search term
   const filteredCompanies = companies.filter(company => 
@@ -78,25 +95,9 @@ export default function RepaymentManagement() {
     }
   }
 
-  async function fetchRepayments() {
-    setLoading(true);
-    try {
-      const url = selectedCompany 
-        ? `/api/repayments?company_id=${selectedCompany}`
-        : "/api/repayments";
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error('Failed to load repayments');
-      }
-      const data = await res.json();
-      setRepayments(data);
-    } catch (error) {
-      setError("Failed to load repayments");
-      console.error("Fetch repayments error:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  useEffect(() => {
+    fetchRepaymentsCallback();
+  }, [fetchRepaymentsCallback]);
 
   function openForm(repayment = { id: null, loan_id: "", amount: "", due_date: "", status: "unpaid" }) {
     setForm(repayment);
@@ -124,7 +125,7 @@ export default function RepaymentManagement() {
       }
       
       setShowForm(false);
-    fetchRepayments();
+    fetchRepaymentsCallback();
     } catch (error) {
       setError(error.message);
     }
@@ -145,7 +146,7 @@ export default function RepaymentManagement() {
         throw new Error("Failed to delete repayment");
       }
       
-    fetchRepayments();
+    fetchRepaymentsCallback();
     } catch (error) {
       setError(error.message);
     }
@@ -231,7 +232,7 @@ export default function RepaymentManagement() {
                 {/* No results message */}
                 {showDropdown && searchTerm && filteredCompanies.length === 0 && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800/95 backdrop-blur-md border border-white/20 rounded-lg shadow-xl z-10 px-4 py-3 text-white/60">
-                    No companies found matching "{searchTerm}"
+                    No companies found matching &quot;{searchTerm}&quot;
                   </div>
                 )}
               </div>

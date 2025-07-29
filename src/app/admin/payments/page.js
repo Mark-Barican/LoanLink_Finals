@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 export default function PaymentManagement() {
@@ -25,26 +25,99 @@ export default function PaymentManagement() {
   const [companyRepayments, setCompanyRepayments] = useState([]);
   const router = useRouter();
 
+  // Define fetch functions with useCallback at the top level
+  const fetchCompaniesCallback = useCallback(async () => {
+    try {
+      console.log('🔍 Fetching companies...');
+      const res = await fetch("/api/companies");
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      const data = await res.json();
+      console.log('✅ Companies fetched:', data.length, 'companies');
+      setCompanies(data);
+    } catch (error) {
+      console.error("❌ Failed to fetch companies:", error);
+      setError(`Failed to fetch companies: ${error.message}`);
+    }
+  }, []);
+
+  const fetchCompanyRepaymentsCallback = useCallback(async (companyId) => {
+    try {
+      const res = await fetch(`/api/repayments?company_id=${companyId}`);
+      if (!res.ok) {
+        throw new Error('Failed to load company repayments');
+      }
+      const data = await res.json();
+      setCompanyRepayments(data.filter(r => r.status === 'unpaid'));
+    } catch (error) {
+      console.error("Failed to fetch company repayments:", error);
+    }
+  }, []);
+
+  const fetchPaymentsCallback = useCallback(async () => {
+    setLoading(true);
+    try {
+      const url = selectedCompany 
+        ? `/api/payments?company_id=${selectedCompany}`
+        : "/api/payments";
+      console.log('🔍 Fetching payments from:', url);
+      
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      const data = await res.json();
+      console.log('✅ Fetched payments:', data.length, 'records');
+      setPayments(data);
+    } catch (error) {
+      const errorMsg = `Failed to load payments: ${error.message}`;
+      setError(errorMsg);
+      console.error("❌ Fetch payments error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedCompany]);
+
+  const fetchRepaymentsCallback = useCallback(async () => {
+    try {
+      const url = selectedCompany 
+        ? `/api/repayments?company_id=${selectedCompany}`
+        : "/api/repayments";
+      console.log('Fetching repayments from:', url);
+      
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error('Failed to load repayments');
+      }
+      const data = await res.json();
+      console.log('Fetched repayments:', data.length, 'records');
+      setRepayments(data.filter(r => r.status === 'unpaid'));
+    } catch (error) {
+      console.error("Failed to fetch repayments:", error);
+    }
+  }, [selectedCompany]);
+
   useEffect(() => {
     const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user")) : null;
     if (!user || (user.role !== "admin" && user.role !== "manager")) {
       router.replace("/auth");
       return;
     }
-    fetchCompanies();
-    fetchPayments();
-    fetchRepayments();
-  }, [router]);
+    fetchCompaniesCallback();
+    fetchPaymentsCallback();
+    fetchRepaymentsCallback();
+  }, [router, fetchCompaniesCallback, fetchPaymentsCallback, fetchRepaymentsCallback]);
 
   useEffect(() => {
     if (selectedCompany) {
-      fetchPayments();
-      fetchRepayments();
+      fetchPaymentsCallback();
+      fetchRepaymentsCallback();
     } else {
-      fetchPayments();
-      fetchRepayments();
+      fetchPaymentsCallback();
+      fetchRepaymentsCallback();
     }
-  }, [selectedCompany]);
+  }, [selectedCompany, fetchPaymentsCallback, fetchRepaymentsCallback]);
 
   // Calculate payment statistics
   const paymentStats = {
@@ -108,9 +181,9 @@ export default function PaymentManagement() {
   // Fetch company repayments when company is selected in form
   useEffect(() => {
     if (form.company_id) {
-      fetchCompanyRepayments(form.company_id);
+      fetchCompanyRepaymentsCallback(form.company_id);
     }
-  }, [form.company_id]);
+  }, [form.company_id, fetchCompanyRepaymentsCallback]);
 
   // Show loading state if companies haven't been fetched yet
   if (companies.length === 0 && !loading) {
@@ -131,78 +204,6 @@ export default function PaymentManagement() {
         </div>
       </div>
     );
-  }
-
-  async function fetchCompanies() {
-    try {
-      console.log('🔍 Fetching companies...');
-      const res = await fetch("/api/companies");
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-      }
-      const data = await res.json();
-      console.log('✅ Companies fetched:', data.length, 'companies');
-      setCompanies(data);
-    } catch (error) {
-      console.error("❌ Failed to fetch companies:", error);
-      setError(`Failed to fetch companies: ${error.message}`);
-    }
-  }
-
-  async function fetchCompanyRepayments(companyId) {
-    try {
-      const res = await fetch(`/api/repayments?company_id=${companyId}`);
-      if (!res.ok) {
-        throw new Error('Failed to load company repayments');
-      }
-      const data = await res.json();
-      setCompanyRepayments(data.filter(r => r.status === 'unpaid'));
-    } catch (error) {
-      console.error("Failed to fetch company repayments:", error);
-    }
-  }
-
-  async function fetchPayments() {
-    setLoading(true);
-    try {
-      const url = selectedCompany 
-        ? `/api/payments?company_id=${selectedCompany}`
-        : "/api/payments";
-      console.log('🔍 Fetching payments from:', url);
-      
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-      }
-      const data = await res.json();
-      console.log('✅ Fetched payments:', data.length, 'records');
-      setPayments(data);
-    } catch (error) {
-      const errorMsg = `Failed to load payments: ${error.message}`;
-      setError(errorMsg);
-      console.error("❌ Fetch payments error:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function fetchRepayments() {
-    try {
-      const url = selectedCompany 
-        ? `/api/repayments?company_id=${selectedCompany}`
-        : "/api/repayments";
-      console.log('Fetching repayments from:', url);
-      
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error('Failed to load repayments');
-      }
-      const data = await res.json();
-      console.log('Fetched repayments:', data.length, 'records');
-      setRepayments(data.filter(r => r.status === 'unpaid'));
-    } catch (error) {
-      console.error("Failed to fetch repayments:", error);
-    }
   }
 
   function openForm(payment = { id: null, company_id: "", repayment_id: "", amount: "", payment_date: "", method: "cash", payment_type: "specific" }) {
@@ -250,8 +251,8 @@ export default function PaymentManagement() {
       
       console.log('Payment processed successfully');
       setShowForm(false);
-      fetchPayments();
-      fetchRepayments();
+      fetchPaymentsCallback();
+      fetchRepaymentsCallback();
     } catch (error) {
       console.error('Payment submission error:', error);
       setError(error.message);
@@ -350,8 +351,8 @@ export default function PaymentManagement() {
         throw new Error(errorData.error || "Failed to delete payment");
       }
       
-      fetchPayments();
-      fetchRepayments();
+      fetchPaymentsCallback();
+      fetchRepaymentsCallback();
     } catch (error) {
       setError(error.message);
     }
@@ -477,7 +478,7 @@ export default function PaymentManagement() {
                 {/* No results message */}
                 {showDropdown && searchTerm && filteredCompanies.length === 0 && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800/95 backdrop-blur-md border border-white/20 rounded-lg shadow-xl z-10 px-4 py-3 text-white/60">
-                    No companies found matching "{searchTerm}"
+                    No companies found matching &quot;{searchTerm}&quot;
                   </div>
                 )}
               </div>
@@ -703,7 +704,7 @@ export default function PaymentManagement() {
                           company.industry.toLowerCase().includes(form.company_search.toLowerCase())
                         ).length === 0 && (
                           <div className="px-4 py-3 text-white/60 text-center">
-                            No companies found matching "{form.company_search}"
+                            No companies found matching &quot;{form.company_search}&quot;
                           </div>
                         )}
                       </div>
