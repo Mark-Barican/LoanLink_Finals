@@ -10,11 +10,24 @@ export async function GET(request) {
     const url = new URL(request.url);
     const loan_id = url.searchParams.get('loan_id');
     const company_id = url.searchParams.get('company_id');
+    const page = parseInt(url.searchParams.get('page')) || 1;
+    const limit = parseInt(url.searchParams.get('limit')) || 10;
+    const offset = (page - 1) * limit;
     
     let result;
+    let totalCount;
     
     if (company_id) {
       // Filter by company - join with loans to get company_id
+      const countResult = await query(`
+        SELECT COUNT(*) as total
+        FROM repayments r
+        JOIN loans l ON r.loan_id = l.id
+        JOIN companies c ON l.company_id = c.id
+        WHERE l.company_id = $1
+      `, [company_id]);
+      totalCount = parseInt(countResult.rows[0].total);
+      
       result = await query(`
         SELECT r.*, l.code as loan_code, l.principal, l.interest_rate, l.term_months,
                c.name as company_name, c.industry as company_industry
@@ -23,9 +36,19 @@ export async function GET(request) {
         JOIN companies c ON l.company_id = c.id
         WHERE l.company_id = $1
         ORDER BY r.due_date
-      `, [company_id]);
+        LIMIT $2 OFFSET $3
+      `, [company_id, limit, offset]);
     } else if (loan_id) {
       // Filter by specific loan
+      const countResult = await query(`
+        SELECT COUNT(*) as total
+        FROM repayments r
+        JOIN loans l ON r.loan_id = l.id
+        JOIN companies c ON l.company_id = c.id
+        WHERE r.loan_id = $1
+      `, [loan_id]);
+      totalCount = parseInt(countResult.rows[0].total);
+      
       result = await query(`
         SELECT r.*, l.code as loan_code, l.principal, l.interest_rate, l.term_months,
                c.name as company_name, c.industry as company_industry
@@ -34,9 +57,18 @@ export async function GET(request) {
         JOIN companies c ON l.company_id = c.id
         WHERE r.loan_id = $1
         ORDER BY r.due_date
-      `, [loan_id]);
+        LIMIT $2 OFFSET $3
+      `, [loan_id, limit, offset]);
     } else {
       // Get all repayments with company and loan info
+      const countResult = await query(`
+        SELECT COUNT(*) as total
+        FROM repayments r
+        JOIN loans l ON r.loan_id = l.id
+        JOIN companies c ON l.company_id = c.id
+      `);
+      totalCount = parseInt(countResult.rows[0].total);
+      
       result = await query(`
         SELECT r.*, l.code as loan_code, l.principal, l.interest_rate, l.term_months,
                c.name as company_name, c.industry as company_industry
@@ -44,10 +76,26 @@ export async function GET(request) {
         JOIN loans l ON r.loan_id = l.id
         JOIN companies c ON l.company_id = c.id
         ORDER BY r.due_date
-      `);
+        LIMIT $1 OFFSET $2
+      `, [limit, offset]);
     }
     
-    return Response.json(result.rows);
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(totalCount / limit);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+    
+    return Response.json({
+      data: result.rows,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        limit,
+        hasNextPage,
+        hasPrevPage
+      }
+    });
   } catch (error) {
     console.error('GET repayments error:', error);
     return Response.json({ error: 'Failed to fetch repayments' }, { status: 500 });

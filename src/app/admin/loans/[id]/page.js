@@ -25,7 +25,8 @@ export default function LoanDetails({ params }) {
   const fetchRepayments = useCallback(async () => {
     try {
       const res = await fetch(`/api/repayments?loan_id=${id}`);
-      setRepayments(await res.json());
+      const responseData = await res.json();
+      setRepayments(responseData.data || []);
     } catch {
       setError("Failed to load repayments");
     }
@@ -34,7 +35,8 @@ export default function LoanDetails({ params }) {
   const fetchPayments = useCallback(async () => {
     try {
       const res = await fetch(`/api/payments`);
-      setPayments(await res.json());
+      const responseData = await res.json();
+      setPayments(responseData.data || []);
     } catch {}
   }, []);
 

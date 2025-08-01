@@ -6,6 +6,7 @@ A modern, full-stack loan management application built with Next.js 15, React 19
 
 - **Multi-role Authentication**: Admin, Manager, and Staff roles with different permissions
 - **Loan Management**: Create, track, and manage loans with detailed repayment schedules
+- **Automatic Loan Completion**: Loans automatically update to "completed" status when all repayments are fully paid
 - **Payment Processing**: Handle payments with multiple methods (cash, bank transfer, check, online)
 - **Company Management**: Manage client companies and their loan portfolios
 - **Real-time Dashboard**: Live statistics and analytics for business insights
@@ -160,13 +161,9 @@ For production, we recommend using:
 - **Supabase** (PostgreSQL): [supabase.com](https://supabase.com)
 - **Railway** (PostgreSQL): [railway.app](https://railway.app)
 
-## 👥 Default Users
+## 👥 User Management
 
-The system comes with demo users for testing:
-
-- **Admin**: `mark_barican@example.com` / `admin123`
-- **Manager**: `manager@example.com` / `manager123`
-- **Staff**: `staff@example.com` / `staff123`
+The system supports multi-role authentication with admin, manager, and staff roles. Users can be created through the application interface or directly in the database.
 
 ## 📁 Project Structure
 

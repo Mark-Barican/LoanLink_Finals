@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+
+// Dynamically import components to avoid prerendering issues
+const AdminNavbar = dynamic(() => import("../AdminNavbar"), { ssr: false });
 
 export default function RepaymentManagement() {
   const [repayments, setRepayments] = useState([]);
@@ -13,6 +17,14 @@ export default function RepaymentManagement() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ id: null, loan_id: "", amount: "", due_date: "", status: "unpaid" });
   const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    limit: 10,
+    hasNextPage: false,
+    hasPrevPage: false
+  });
   const router = useRouter();
 
   // Define fetch functions with useCallback
@@ -36,18 +48,19 @@ export default function RepaymentManagement() {
     }
   }, []);
 
-  const fetchRepaymentsCallback = useCallback(async () => {
+  const fetchRepaymentsCallback = useCallback(async (page = 1) => {
     setLoading(true);
     try {
       const url = selectedCompany 
-        ? `/api/repayments?company_id=${selectedCompany}`
-        : "/api/repayments";
+        ? `/api/repayments?company_id=${selectedCompany}&page=${page}&limit=10`
+        : `/api/repayments?page=${page}&limit=10`;
       const res = await fetch(url);
       if (!res.ok) {
         throw new Error('Failed to load repayments');
       }
-      const data = await res.json();
-      setRepayments(data);
+      const responseData = await res.json();
+      setRepayments(responseData.data);
+      setPagination(responseData.pagination);
     } catch (error) {
       setError("Failed to load repayments");
       console.error("Fetch repayments error:", error);
@@ -65,7 +78,7 @@ export default function RepaymentManagement() {
     }
     fetchCompanies();
     fetchLoans();
-    fetchRepaymentsCallback();
+    fetchRepaymentsCallback(1);
   }, [router, fetchRepaymentsCallback, fetchCompanies, fetchLoans]);
 
   // Filter companies based on search term
@@ -98,7 +111,7 @@ export default function RepaymentManagement() {
   }, []);
 
   useEffect(() => {
-    fetchRepaymentsCallback();
+    fetchRepaymentsCallback(1);
   }, [fetchRepaymentsCallback]);
 
   function openForm(repayment = { id: null, loan_id: "", amount: "", due_date: "", status: "unpaid" }) {
@@ -176,8 +189,85 @@ export default function RepaymentManagement() {
     ? loans.filter(loan => loan.company_id === selectedCompany)
     : loans;
 
+  // Pagination functions
+  const handlePageChange = (newPage) => {
+    fetchRepaymentsCallback(newPage);
+  };
+
+  const renderPaginationControls = () => {
+    if (pagination.totalPages <= 1) return null;
+
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, pagination.currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(pagination.totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    // Previous button
+    if (pagination.hasPrevPage) {
+      pages.push(
+        <button
+          key="prev"
+          onClick={() => handlePageChange(pagination.currentPage - 1)}
+          className="px-3 py-2 text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+        >
+          Previous
+        </button>
+      );
+    }
+
+    // Page numbers
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+            i === pagination.currentPage
+              ? 'bg-green-400 text-slate-900'
+              : 'text-white bg-white/10 hover:bg-white/20'
+          }`}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    // Next button
+    if (pagination.hasNextPage) {
+      pages.push(
+        <button
+          key="next"
+          onClick={() => handlePageChange(pagination.currentPage + 1)}
+          className="px-3 py-2 text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+        >
+          Next
+        </button>
+      );
+    }
+
+    return (
+      <div className="flex items-center justify-between mt-6">
+        <div className="text-sm text-white/60">
+          Showing {((pagination.currentPage - 1) * pagination.limit) + 1} to{' '}
+          {Math.min(pagination.currentPage * pagination.limit, pagination.totalCount)} of{' '}
+          {pagination.totalCount} repayments
+        </div>
+        <div className="flex items-center gap-2">
+          {pages}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="relative min-h-screen bg-slate-950 pt-20">
+    <div className="relative min-h-screen bg-slate-950">
+      {/* Admin Navbar */}
+      <AdminNavbar currentPage="repayments" />
+      
       {/* Background Pattern - Full Screen */}
       <div className="fixed inset-0 -z-10">
         <div className="h-full w-full bg-slate-950 [&>div]:absolute [&>div]:bottom-0 [&>div]:right-[-20%] [&>div]:top-[-10%] [&>div]:h-[500px] [&>div]:w-[500px] [&>div]:rounded-full [&>div]:bg-[radial-gradient(circle_farthest-side,rgba(34,197,94,.15),rgba(255,255,255,0))]">
@@ -186,7 +276,7 @@ export default function RepaymentManagement() {
       </div>
       
       {/* Content - Full width layout */}
-      <div className="relative z-10 px-4 py-3">
+      <div className="relative z-10 px-4 py-3 pt-24">
         <div className="backdrop-blur-md bg-white/10 rounded-2xl border border-white/20 p-6 w-full">
           <h1 className="text-2xl font-bold text-green-400 mb-6 text-center">Repayment Management</h1>
           
@@ -271,7 +361,7 @@ export default function RepaymentManagement() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-blue-400/20 text-blue-400 border border-blue-400/30 rounded-xl p-4 backdrop-blur-sm">
                 <div className="text-xs font-semibold mb-1">Total Repayments</div>
-                <div className="text-xl font-bold">{repayments.length}</div>
+                <div className="text-xl font-bold">{pagination.totalCount}</div>
               </div>
               <div className="bg-green-400/20 text-green-400 border border-green-400/30 rounded-xl p-4 backdrop-blur-sm">
                 <div className="text-xs font-semibold mb-1">Paid</div>
@@ -355,6 +445,9 @@ export default function RepaymentManagement() {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination Controls */}
+          {renderPaginationControls()}
           
           {/* Add/Edit Form Modal */}
           {showForm && (

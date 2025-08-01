@@ -10,11 +10,25 @@ export async function GET(request) {
     const url = new URL(request.url);
     const repayment_id = url.searchParams.get('repayment_id');
     const company_id = url.searchParams.get('company_id');
+    const page = parseInt(url.searchParams.get('page')) || 1;
+    const limit = parseInt(url.searchParams.get('limit')) || 10;
+    const offset = (page - 1) * limit;
     
     let result;
+    let totalCount;
     
     if (company_id) {
       // Filter by company - join with repayments and loans to get company_id
+      const countResult = await query(`
+        SELECT COUNT(*) as total
+        FROM payments p
+        JOIN repayments r ON p.repayment_id = r.id
+        JOIN loans l ON r.loan_id = l.id
+        JOIN companies c ON l.company_id = c.id
+        WHERE l.company_id = $1
+      `, [company_id]);
+      totalCount = parseInt(countResult.rows[0].total);
+      
       result = await query(`
         SELECT p.*, r.amount as repayment_amount, r.due_date, r.status as repayment_status,
                l.code as loan_code, l.principal, l.interest_rate,
@@ -25,9 +39,20 @@ export async function GET(request) {
         JOIN companies c ON l.company_id = c.id
         WHERE l.company_id = $1
         ORDER BY p.payment_date DESC
-      `, [company_id]);
+        LIMIT $2 OFFSET $3
+      `, [company_id, limit, offset]);
     } else if (repayment_id) {
       // Filter by specific repayment
+      const countResult = await query(`
+        SELECT COUNT(*) as total
+        FROM payments p
+        JOIN repayments r ON p.repayment_id = r.id
+        JOIN loans l ON r.loan_id = l.id
+        JOIN companies c ON l.company_id = c.id
+        WHERE p.repayment_id = $1
+      `, [repayment_id]);
+      totalCount = parseInt(countResult.rows[0].total);
+      
       result = await query(`
         SELECT p.*, r.amount as repayment_amount, r.due_date, r.status as repayment_status,
                l.code as loan_code, l.principal, l.interest_rate,
@@ -38,9 +63,19 @@ export async function GET(request) {
         JOIN companies c ON l.company_id = c.id
         WHERE p.repayment_id = $1
         ORDER BY p.payment_date DESC
-      `, [repayment_id]);
+        LIMIT $2 OFFSET $3
+      `, [repayment_id, limit, offset]);
     } else {
       // Get all payments with detailed info
+      const countResult = await query(`
+        SELECT COUNT(*) as total
+        FROM payments p
+        JOIN repayments r ON p.repayment_id = r.id
+        JOIN loans l ON r.loan_id = l.id
+        JOIN companies c ON l.company_id = c.id
+      `);
+      totalCount = parseInt(countResult.rows[0].total);
+      
       result = await query(`
         SELECT p.*, r.amount as repayment_amount, r.due_date, r.status as repayment_status,
                l.code as loan_code, l.principal, l.interest_rate,
@@ -50,7 +85,8 @@ export async function GET(request) {
         JOIN loans l ON r.loan_id = l.id
         JOIN companies c ON l.company_id = c.id
         ORDER BY p.payment_date DESC
-      `);
+        LIMIT $1 OFFSET $2
+      `, [limit, offset]);
     }
     
     // Transform the data to ensure consistent format
@@ -61,7 +97,22 @@ export async function GET(request) {
       paid_at: row.paid_at || null
     }));
     
-    return Response.json(transformedRows);
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(totalCount / limit);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+    
+    return Response.json({
+      data: transformedRows,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        limit,
+        hasNextPage,
+        hasPrevPage
+      }
+    });
   } catch (error) {
     console.error('Payments GET error:', error);
     return Response.json({ error: 'Failed to load payments' }, { status: 500 });
@@ -90,6 +141,37 @@ export async function POST(request) {
   }
 }
 
+// Function to check if a loan is fully paid and update its status
+async function checkAndUpdateLoanStatus(loanId) {
+  try {
+    // Check if all repayments for this loan are paid
+    const repaymentCheck = await query(`
+      SELECT 
+        COUNT(*) as total_repayments,
+        COUNT(CASE WHEN status = 'paid' OR paid = true THEN 1 END) as paid_repayments
+      FROM repayments 
+      WHERE loan_id = $1
+    `, [loanId]);
+    
+    const { total_repayments, paid_repayments } = repaymentCheck.rows[0];
+    
+    // If all repayments are paid, update loan status to 'completed'
+    if (parseInt(total_repayments) > 0 && parseInt(total_repayments) === parseInt(paid_repayments)) {
+      await query(
+        'UPDATE loans SET status = $1 WHERE id = $2',
+        ['completed', loanId]
+      );
+      console.log(`Loan ${loanId} status updated to 'completed' - all repayments paid`);
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error checking loan status:', error);
+    return false;
+  }
+}
+
 async function handleSinglePayment(paymentData) {
   const { repayment_id, amount, payment_date, method = 'cash' } = paymentData;
   
@@ -107,7 +189,7 @@ async function handleSinglePayment(paymentData) {
     
     // Check if repayment exists and is unpaid
     const repaymentCheck = await query(
-      'SELECT id, amount, status FROM repayments WHERE id = $1',
+      'SELECT id, amount, status, loan_id FROM repayments WHERE id = $1',
       [repayment_id]
     );
     
@@ -142,6 +224,9 @@ async function handleSinglePayment(paymentData) {
     
     console.log('Repayment updated:', updateResult.rows[0]);
     
+    // Check if loan should be marked as completed
+    await checkAndUpdateLoanStatus(repayment.loan_id);
+    
     await query('COMMIT');
     console.log('Transaction committed successfully');
     
@@ -163,6 +248,7 @@ async function handleBulkPayments(payments) {
     await query('BEGIN');
     
     const createdPayments = [];
+    const updatedLoans = new Set(); // Track loans that need status check
     
     for (const payment of payments) {
       const { repayment_id, amount, payment_date, method = 'cash' } = payment;
@@ -174,7 +260,7 @@ async function handleBulkPayments(payments) {
       
       // Check if repayment exists and is unpaid
       const repaymentCheck = await query(
-        'SELECT id, amount, status FROM repayments WHERE id = $1',
+        'SELECT id, amount, status, loan_id FROM repayments WHERE id = $1',
         [repayment_id]
       );
       
@@ -202,6 +288,12 @@ async function handleBulkPayments(payments) {
       );
       
       createdPayments.push(paymentResult.rows[0]);
+      updatedLoans.add(repayment.loan_id); // Track this loan for status check
+    }
+    
+    // Check and update loan status for all affected loans
+    for (const loanId of updatedLoans) {
+      await checkAndUpdateLoanStatus(loanId);
     }
     
     await query('COMMIT');

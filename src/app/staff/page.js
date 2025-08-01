@@ -17,8 +17,12 @@ export default function StaffDashboard() {
   async function fetchStats() {
     try {
       setLoading(true);
+      const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user")) : null;
       const res = await fetch("/api/reports", {
-        cache: 'no-store' // Ensure fresh data
+        cache: 'no-store', // Ensure fresh data
+        headers: {
+          'x-user-role': user?.role || 'staff'
+        }
       });
       if (!res.ok) {
         throw new Error('Failed to load stats');
@@ -49,9 +53,9 @@ export default function StaffDashboard() {
   }, [router]);
 
   function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-PH', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'PHP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
