@@ -30,9 +30,80 @@ ChartJS.register(
   Filler
 );
 
+// Skeleton Loading Component
+function ReportsSkeleton() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Header Skeleton */}
+      <div className="bg-white/5 backdrop-blur-md border-b border-white/10 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="w-48 h-8 bg-white/10 rounded-lg animate-pulse mb-2"></div>
+              <div className="w-32 h-4 bg-white/10 rounded animate-pulse"></div>
+            </div>
+            <div className="text-right">
+              <div className="w-24 h-4 bg-white/10 rounded animate-pulse mb-1"></div>
+              <div className="w-32 h-5 bg-white/10 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Tabs Skeleton */}
+      <div className="bg-white/5 backdrop-blur-md border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex space-x-1">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="w-24 h-12 bg-white/10 rounded-lg animate-pulse"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Content Skeleton */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Key Metrics Skeleton */}
+        <div className="mb-8">
+          <div className="w-48 h-6 bg-white/10 rounded animate-pulse mb-6"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white/5 rounded-xl p-6 border border-white/10">
+                <div className="w-32 h-4 bg-white/10 rounded animate-pulse mb-2"></div>
+                <div className="w-24 h-8 bg-white/10 rounded animate-pulse mb-1"></div>
+                <div className="w-20 h-3 bg-white/10 rounded animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Chart Skeleton */}
+        <div className="mb-8">
+          <div className="w-64 h-6 bg-white/10 rounded animate-pulse mb-6"></div>
+          <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+            <div className="h-80 bg-white/5 rounded-lg animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* Quick Stats Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white/5 rounded-xl p-6 border border-white/10">
+              <div className="w-28 h-4 bg-white/10 rounded animate-pulse mb-2"></div>
+              <div className="w-20 h-8 bg-white/10 rounded animate-pulse mb-1"></div>
+              <div className="w-24 h-3 bg-white/10 rounded animate-pulse"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ReportsPage() {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState("overview");
   const router = useRouter();
 
   useEffect(() => {
@@ -56,18 +127,23 @@ export default function ReportsPage() {
     }
   }
 
-  function Stat({ label, value, color = "green" }) {
+  function Stat({ label, value, color = "green", subtitle = "", icon = null }) {
     const colors = {
-      green: "bg-green-400/20 text-green-400 border-green-400/30",
-      blue: "bg-blue-400/20 text-blue-400 border-blue-400/30",
-      orange: "bg-orange-400/20 text-orange-400 border-orange-400/30",
-      purple: "bg-purple-400/20 text-purple-400 border-purple-400/30",
-      red: "bg-red-400/20 text-red-400 border-red-400/30"
+      green: "bg-green-500/10 text-green-400 border-green-500/20",
+      blue: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+      orange: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+      purple: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+      red: "bg-red-500/10 text-red-400 border-red-500/20",
+      yellow: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
     };
     return (
-      <div className={`${colors[color]} rounded-xl p-3 border backdrop-blur-sm`}>
-        <div className="text-xs font-semibold mb-1">{label}</div>
-        <div className="text-xl font-bold">{value}</div>
+      <div className={`${colors[color]} rounded-xl p-6 border backdrop-blur-sm hover:scale-105 transition-transform duration-200`}>
+        <div className="flex items-center justify-center mb-2">
+          <div className="text-sm font-medium opacity-80">{label}</div>
+        </div>
+        <div className="text-2xl font-bold mb-1 text-center">{value}</div>
+        {subtitle && <div className="text-xs opacity-60 text-center">{subtitle}</div>}
+        {icon && <div className="flex justify-center mt-3">{icon}</div>}
       </div>
     );
   }
@@ -82,18 +158,7 @@ export default function ReportsPage() {
   }
 
   if (!stats) {
-    return (
-      <div className="relative h-screen overflow-hidden">
-        <div className="fixed inset-0 -z-10">
-          <div className="h-full w-full bg-slate-950 [&>div]:absolute [&>div]:bottom-0 [&>div]:right-[-20%] [&>div]:top-[-10%] [&>div]:h-[500px] [&>div]:w-[500px] [&>div]:rounded-full [&>div]:bg-[radial-gradient(circle_farthest-side,rgba(34,197,94,.15),rgba(255,255,255,0))]">
-            <div></div>
-          </div>
-        </div>
-        <div className="relative z-10 h-full flex items-center justify-center">
-          <div className="text-white">Loading reports...</div>
-        </div>
-      </div>
-    );
+    return <ReportsSkeleton />;
   }
 
   // Chart configurations
@@ -101,53 +166,75 @@ export default function ReportsPage() {
     labels: stats.charts?.monthlyLoans?.map(item => item.month) || [],
     datasets: [
       {
-        label: 'Loans',
-        data: stats.charts?.monthlyLoans?.map(item => item.count) || [],
-        backgroundColor: 'rgba(34, 197, 94, 0.8)',
+        label: 'Loan Amount',
+        data: stats.charts?.monthlyLoans?.map(item => item.amount) || [],
+        backgroundColor: 'rgba(34, 197, 94, 0.2)',
         borderColor: 'rgba(34, 197, 94, 1)',
-        borderWidth: 1,
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
       },
       {
-        label: 'Payments',
-        data: stats.charts?.monthlyPayments?.map(item => item.count) || [],
-        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+        label: 'Payment Amount',
+        data: stats.charts?.monthlyPayments?.map(item => item.amount) || [],
+        backgroundColor: 'rgba(59, 130, 246, 0.2)',
         borderColor: 'rgba(59, 130, 246, 1)',
-        borderWidth: 1,
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
       }
     ],
   };
 
-  const roleDistributionData = {
-    labels: stats.charts?.roleDistribution?.map(item => item.role) || [],
+  const paymentMethodsData = {
+    labels: stats.charts?.paymentMethodsDistribution?.map(item => item.method) || [],
     datasets: [{
-      data: stats.charts?.roleDistribution?.map(item => item.count) || [],
+      data: stats.charts?.paymentMethodsDistribution?.map(item => item.amount) || [],
       backgroundColor: [
         'rgba(34, 197, 94, 0.8)',
         'rgba(59, 130, 246, 0.8)',
         'rgba(249, 115, 22, 0.8)',
+        'rgba(168, 85, 247, 0.8)',
       ],
       borderColor: [
         'rgba(34, 197, 94, 1)',
         'rgba(59, 130, 246, 1)',
         'rgba(249, 115, 22, 1)',
+        'rgba(168, 85, 247, 1)',
       ],
       borderWidth: 2,
     }],
   };
 
-  const loanStatusData = {
-    labels: stats.charts?.loanStatusDistribution?.map(item => item.status) || [],
+  const companyLoanData = {
+    labels: stats.charts?.companyLoanDistribution?.map(item => item.company) || [],
+    datasets: [
+      {
+        label: 'Total Loan Amount',
+        data: stats.charts?.companyLoanDistribution?.map(item => item.totalAmount) || [],
+        backgroundColor: 'rgba(34, 197, 94, 0.8)',
+        borderColor: 'rgba(34, 197, 94, 1)',
+        borderWidth: 1,
+      }
+    ],
+  };
+
+  const repaymentTrendData = {
+    labels: stats.charts?.repaymentStatusByMonth?.map(item => item.month) || [],
     datasets: [{
-      data: stats.charts?.loanStatusDistribution?.map(item => item.count) || [],
-      backgroundColor: [
-        'rgba(34, 197, 94, 0.8)',
-        'rgba(239, 68, 68, 0.8)',
-      ],
-      borderColor: [
-        'rgba(34, 197, 94, 1)',
-        'rgba(239, 68, 68, 1)',
-      ],
+      label: 'Paid Repayments',
+      data: stats.charts?.repaymentStatusByMonth?.filter(item => item.status === 'paid').map(item => item.count) || [],
+      backgroundColor: 'rgba(34, 197, 94, 0.8)',
+      borderColor: 'rgba(34, 197, 94, 1)',
       borderWidth: 2,
+      tension: 0.4,
+    }, {
+      label: 'Unpaid Repayments',
+      data: stats.charts?.repaymentStatusByMonth?.filter(item => item.status === 'unpaid').map(item => item.count) || [],
+      backgroundColor: 'rgba(239, 68, 68, 0.8)',
+      borderColor: 'rgba(239, 68, 68, 1)',
+      borderWidth: 2,
+      tension: 0.4,
     }],
   };
 
@@ -158,39 +245,40 @@ export default function ReportsPage() {
       legend: {
         labels: {
           color: 'white',
-          font: {
-            size: 12
-          }
+          font: { size: 12 },
+          usePointStyle: true,
         }
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
         titleColor: 'white',
         bodyColor: 'white',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: true,
       }
     },
     scales: {
       y: {
         beginAtZero: true,
         ticks: {
-          color: 'white',
-          font: {
-            size: 10
-          }
+          color: 'rgba(255, 255, 255, 0.7)',
+          font: { size: 11 }
         },
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)'
+          color: 'rgba(255, 255, 255, 0.1)',
+          drawBorder: false,
         }
       },
       x: {
         ticks: {
-          color: 'white',
-          font: {
-            size: 10
-          }
+          color: 'rgba(255, 255, 255, 0.7)',
+          font: { size: 11 }
         },
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)'
+          color: 'rgba(255, 255, 255, 0.1)',
+          drawBorder: false,
         }
       }
     }
@@ -204,105 +292,419 @@ export default function ReportsPage() {
         position: 'bottom',
         labels: {
           color: 'white',
-          font: {
-            size: 10
-          }
+          font: { size: 11 },
+          usePointStyle: true,
+          padding: 15,
         }
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
         titleColor: 'white',
         bodyColor: 'white',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1,
+        cornerRadius: 8,
       }
     }
   };
 
+  const tabs = [
+    { id: "overview", label: "Overview", icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+      </svg>
+    ) },
+    { id: "financials", label: "Financials", icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+      </svg>
+    ) },
+    { id: "companies", label: "Companies", icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      </svg>
+    ) },
+    { id: "performance", label: "Performance", icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+      </svg>
+    ) }
+  ];
+
   return (
-    <div className="relative min-h-screen bg-slate-950 pt-20">
-      {/* Background Pattern - Full Screen */}
-      <div className="fixed inset-0 -z-10">
-        <div className="h-full w-full bg-slate-950 [&>div]:absolute [&>div]:bottom-0 [&>div]:right-[-20%] [&>div]:top-[-10%] [&>div]:h-[500px] [&>div]:w-[500px] [&>div]:rounded-full [&>div]:bg-[radial-gradient(circle_farthest-side,rgba(34,197,94,.15),rgba(255,255,255,0))]">
-          <div></div>
-        </div>
-      </div>
-      
-      {/* Content - Full width layout */}
-      <div className="relative z-10 px-4 py-3">
-        <div className="backdrop-blur-md bg-white/10 rounded-2xl border border-white/20 p-6 w-full">
-          <h1 className="text-2xl font-bold text-green-400 mb-6 text-center">Reports & Analytics</h1>
-          
-          {error && <p className="text-red-300 text-sm text-center mb-3">{error}</p>}
-          
-          <div className="space-y-6">
-            {/* Key Statistics */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Header */}
+      <div className="bg-white/5 backdrop-blur-md border-b border-white/10 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-white mb-4">Key Statistics</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Stat label="Total Users" value={stats.users} color="blue" />
-                <Stat label="Companies" value={stats.companies} color="purple" />
-                <Stat label="Active Loans" value={stats.activeLoans} color="green" />
-                <Stat label="Total Repayments" value={stats.totalRepayments} color="orange" />
-              </div>
+              <h1 className="text-2xl font-bold text-white">Financial Dashboard</h1>
+              <p className="text-white/60 text-sm">Loan Management Analytics</p>
             </div>
-
-            {/* Financial Summary */}
-            <div>
-              <h2 className="text-lg font-semibold text-white mb-4">Financial Summary</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Stat label="Total Loan Amount" value={formatCurrency(stats.totalLoanAmount)} color="green" />
-                <Stat label="Total Repaid" value={formatCurrency(stats.totalRepaid)} color="blue" />
-                <Stat label="Outstanding Balance" value={formatCurrency(stats.outstandingBalance)} color="red" />
-              </div>
-            </div>
-
-            {/* Charts Row 1 */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                <h3 className="text-lg font-semibold text-white mb-4">Monthly Activity</h3>
-                <div className="h-64">
-                  <Bar data={monthlyLoansData} options={chartOptions} />
-                </div>
-              </div>
-              
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                <h3 className="text-lg font-semibold text-white mb-4">User Role Distribution</h3>
-                <div className="h-64">
-                  <Doughnut data={roleDistributionData} options={doughnutOptions} />
-                </div>
-              </div>
-            </div>
-
-            {/* Charts Row 2 */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                <h3 className="text-lg font-semibold text-white mb-4">Loan Status Distribution</h3>
-                <div className="h-64">
-                  <Doughnut data={loanStatusData} options={doughnutOptions} />
-                </div>
-              </div>
-              
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                <h3 className="text-lg font-semibold text-white mb-4">Repayment Status</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <Stat label="Paid Repayments" value={stats.paidRepayments} color="green" />
-                  <Stat label="Unpaid Repayments" value={stats.unpaidRepayments} color="red" />
-                  <Stat label="Payment Rate" value={`${stats.paymentRate}%`} color="blue" />
-                  <Stat label="Overdue" value={stats.overdueRepayments} color="orange" />
-                </div>
-              </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div>
-              <h2 className="text-lg font-semibold text-white mb-4">Recent Activity (This Month)</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Stat label="New Loans" value={stats.recentLoans} color="green" />
-                <Stat label="New Payments" value={stats.recentPayments} color="blue" />
-                <Stat label="Overdue Repayments" value={stats.overdueRepayments} color="red" />
-              </div>
+            <div className="text-right">
+              <div className="text-white/60 text-sm">Last Updated</div>
+              <div className="text-white font-medium">{new Date().toLocaleDateString()}</div>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="bg-white/5 backdrop-blur-md border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex space-x-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <span className="mr-2">{tab.icon}</span>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
+            <p className="text-red-400 text-center">{error}</p>
+          </div>
+        )}
+
+        {/* Overview Tab */}
+        {activeTab === "overview" && (
+          <div className="space-y-8">
+            {/* Key Metrics */}
+            <div>
+              <h2 className="text-xl font-semibold text-white mb-6">Key Business Metrics</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Stat 
+                  label="Total Loan Portfolio" 
+                  value={formatCurrency(stats.totalLoanAmount)} 
+                  color="green"
+                  subtitle="Total amount lent"
+                  icon={(
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  )}
+                />
+                <Stat 
+                  label="Total Collections" 
+                  value={formatCurrency(stats.totalRepaid)} 
+                  color="blue"
+                  subtitle="Total amount collected"
+                  icon={(
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                  )}
+                />
+                <Stat 
+                  label={stats.isOverpaid ? "Overpayment" : "Outstanding Balance"} 
+                  value={formatCurrency(stats.outstandingBalance)} 
+                  color={stats.isOverpaid ? "green" : "red"}
+                  subtitle={stats.isOverpaid ? "Excess payments received" : "Amount still owed"}
+                  icon={(
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={stats.isOverpaid ? "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" : "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"} />
+                    </svg>
+                  )}
+                />
+                <Stat 
+                  label="Payment Rate" 
+                  value={`${stats.paymentRate}%`} 
+                  color="purple"
+                  subtitle="Collection efficiency"
+                  icon={(
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Monthly Trends */}
+            <div>
+              <h2 className="text-xl font-semibold text-white mb-6">Monthly Cash Flow Trends</h2>
+              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                <div className="h-80">
+                  <Line data={monthlyLoansData} options={chartOptions} />
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Stat 
+                label="Active Loans" 
+                value={stats.activeLoans} 
+                color="green"
+                subtitle="Currently active"
+                icon={(
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                )}
+              />
+              <Stat 
+                label="Total Companies" 
+                value={stats.companies} 
+                color="blue"
+                subtitle="Borrowing clients"
+                icon={(
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                )}
+              />
+              <Stat 
+                label="Overdue Amount" 
+                value={formatCurrency(stats.overdueAmount)} 
+                color="red"
+                subtitle="Past due payments"
+                icon={(
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                )}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Financials Tab */}
+        {activeTab === "financials" && (
+          <div className="space-y-8">
+            {/* Financial Summary */}
+            <div>
+              <h2 className="text-xl font-semibold text-white mb-6">Financial Performance</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Stat 
+                  label="Average Loan Size" 
+                  value={formatCurrency(stats.averageLoanAmount)} 
+                  color="green"
+                  subtitle="Per loan"
+                  icon={(
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                />
+                <Stat 
+                  label="Average Repayment" 
+                  value={formatCurrency(stats.averageRepaymentAmount)} 
+                  color="blue"
+                  subtitle="Per repayment"
+                  icon={(
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  )}
+                />
+                <Stat 
+                  label="Paid Repayments" 
+                  value={stats.paidRepayments} 
+                  color="green"
+                  subtitle="Successfully collected"
+                  icon={(
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )}
+                />
+                <Stat 
+                  label="Unpaid Repayments" 
+                  value={stats.unpaidRepayments} 
+                  color="red"
+                  subtitle="Pending collection"
+                  icon={(
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Payment Methods */}
+            <div>
+              <h2 className="text-xl font-semibold text-white mb-6">Payment Method Distribution</h2>
+              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                <div className="h-80">
+                  <Doughnut data={paymentMethodsData} options={doughnutOptions} />
+                </div>
+              </div>
+            </div>
+
+            {/* Repayment Trends */}
+            <div>
+              <h2 className="text-xl font-semibold text-white mb-6">Repayment Collection Trends</h2>
+              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                <div className="h-80">
+                  <Line data={repaymentTrendData} options={chartOptions} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Companies Tab */}
+        {activeTab === "companies" && (
+          <div className="space-y-8">
+            {/* Company Loan Distribution */}
+            <div>
+              <h2 className="text-xl font-semibold text-white mb-6">Top Borrowing Companies</h2>
+              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                <div className="h-80">
+                  <Bar data={companyLoanData} options={chartOptions} />
+                </div>
+              </div>
+            </div>
+
+            {/* Top Performing Companies */}
+            {stats.topPerformingCompanies && stats.topPerformingCompanies.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold text-white mb-6">Best Performing Clients</h2>
+                <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-white/5">
+                        <tr>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-white">Company</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-white">Loans</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-white">Borrowed</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-white">Paid</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-white">Rate</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stats.topPerformingCompanies.map((company, index) => (
+                          <tr key={index} className="border-t border-white/10 hover:bg-white/5 transition-colors">
+                            <td className="px-6 py-4 text-white font-medium">{company.company}</td>
+                            <td className="px-6 py-4 text-white/80">{company.loanCount}</td>
+                            <td className="px-6 py-4 text-white/80">{formatCurrency(company.totalBorrowed)}</td>
+                            <td className="px-6 py-4 text-white/80">{formatCurrency(company.totalPaid)}</td>
+                            <td className="px-6 py-4">
+                              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                company.repaymentRate >= 80 
+                                  ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                  : company.repaymentRate >= 60
+                                  ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                                  : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                              }`}>
+                                {company.repaymentRate}%
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Performance Tab */}
+        {activeTab === "performance" && (
+          <div className="space-y-8">
+            {/* Recent Activity */}
+            <div>
+              <h2 className="text-xl font-semibold text-white mb-6">This Month&apos;s Performance</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Stat 
+                  label="New Loans" 
+                  value={stats.recentLoans} 
+                  color="green"
+                  subtitle="Loans created this month"
+                  icon={(
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  )}
+                />
+                <Stat 
+                  label="New Payments" 
+                  value={stats.recentPayments} 
+                  color="blue"
+                  subtitle="Payments received this month"
+                  icon={(
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                  )}
+                />
+                <Stat 
+                  label="Overdue Items" 
+                  value={stats.overdueRepayments} 
+                  color="red"
+                  subtitle="Past due repayments"
+                  icon={(
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Risk Metrics */}
+            <div>
+              <h2 className="text-xl font-semibold text-white mb-6">Risk Assessment</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                  <h3 className="text-lg font-semibold text-white mb-4">Portfolio Health</h3>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-white/80">Collection Rate</span>
+                      <span className="text-green-400 font-semibold">{stats.paymentRate}%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-white/80">Overdue Ratio</span>
+                      <span className="text-red-400 font-semibold">
+                        {stats.totalRepayments > 0 ? Math.round((stats.overdueRepayments / stats.totalRepayments) * 100) : 0}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-white/80">Average Loan Size</span>
+                      <span className="text-blue-400 font-semibold">{formatCurrency(stats.averageLoanAmount)}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                  <h3 className="text-lg font-semibold text-white mb-4">Cash Flow Status</h3>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-white/80">Total Outstanding</span>
+                      <span className="text-orange-400 font-semibold">{formatCurrency(stats.outstandingBalance)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-white/80">Overdue Amount</span>
+                      <span className="text-red-400 font-semibold">{formatCurrency(stats.overdueAmount)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-white/80">Collection Efficiency</span>
+                      <span className={`font-semibold ${stats.paymentRate >= 80 ? 'text-green-400' : stats.paymentRate >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
+                        {stats.paymentRate >= 80 ? 'Excellent' : stats.paymentRate >= 60 ? 'Good' : 'Needs Attention'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
