@@ -1,8 +1,8 @@
 import { query } from '../db.js';
 
-function isAdminOrManager(request) {
+function isAuthorized(request) {
   const role = request.headers.get('x-user-role');
-  return role === 'admin' || role === 'manager';
+  return role === 'admin' || role === 'manager' || role === 'staff';
 }
 
 export async function GET(request) {
@@ -120,7 +120,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  if (!isAdminOrManager(request)) {
+  if (!isAuthorized(request)) {
     return Response.json({ error: 'Forbidden' }, { status: 403 });
   }
   
@@ -310,7 +310,7 @@ async function handleBulkPayments(payments) {
 }
 
 export async function PUT(request) {
-  if (!isAdminOrManager(request)) {
+  if (!isAuthorized(request)) {
     return Response.json({ error: 'Forbidden' }, { status: 403 });
   }
   
@@ -333,7 +333,7 @@ export async function PUT(request) {
 }
 
 export async function DELETE(request) {
-  if (!isAdminOrManager(request)) {
+  if (!isAuthorized(request)) {
     return Response.json({ error: 'Forbidden' }, { status: 403 });
   }
   
