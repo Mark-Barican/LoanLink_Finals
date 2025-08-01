@@ -6,6 +6,120 @@ import dynamic from "next/dynamic";
 // Dynamically import Link to avoid prerendering issues
 const DynamicLink = dynamic(() => import("next/link"), { ssr: false });
 
+// Skeleton Loading Component
+function AdminDashboardSkeleton() {
+  return (
+    <div className="relative min-h-screen bg-slate-950 pt-20">
+      {/* Background Pattern */}
+      <div className="fixed inset-0 -z-10">
+        <div className="h-full w-full bg-slate-950 [&>div]:absolute [&>div]:bottom-0 [&>div]:right-[-20%] [&>div]:top-[-10%] [&>div]:h-[500px] [&>div]:w-[500px] [&>div]:rounded-full [&>div]:bg-[radial-gradient(circle_farthest-side,rgba(34,197,94,.15),rgba(255,255,255,0))]">
+          <div></div>
+        </div>
+      </div>
+      
+      {/* Header Skeleton */}
+      <div className="relative z-10 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="w-48 h-8 bg-white/10 rounded-lg animate-pulse mb-2"></div>
+            <div className="w-32 h-4 bg-white/10 rounded animate-pulse"></div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <div className="w-20 h-3 bg-white/10 rounded animate-pulse mb-1"></div>
+              <div className="w-24 h-4 bg-white/10 rounded animate-pulse"></div>
+            </div>
+            <div className="w-24 h-10 bg-white/10 rounded-lg animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Skeleton */}
+      <div className="relative z-10 px-6 pb-6">
+        <div className="space-y-6">
+          {/* Key Metrics Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white/5 rounded-xl p-6 border border-white/10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-24 h-4 bg-white/10 rounded animate-pulse"></div>
+                  <div className="w-8 h-8 bg-white/10 rounded-lg animate-pulse"></div>
+                </div>
+                <div className="w-16 h-8 bg-white/10 rounded animate-pulse mb-2"></div>
+                <div className="w-20 h-3 bg-white/10 rounded animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+
+          {/* Financial Cards Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white/5 rounded-xl p-6 border border-white/10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-32 h-5 bg-white/10 rounded animate-pulse"></div>
+                  <div className="w-8 h-8 bg-white/10 rounded-lg animate-pulse"></div>
+                </div>
+                <div className="w-24 h-8 bg-white/10 rounded animate-pulse mb-2"></div>
+                <div className="w-20 h-3 bg-white/10 rounded animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+
+          {/* Quick Actions and Activity Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Quick Actions Skeleton */}
+            <div className="lg:col-span-1">
+              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                <div className="w-32 h-6 bg-white/10 rounded animate-pulse mb-4"></div>
+                <div className="space-y-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
+                      <div className="w-8 h-8 bg-white/10 rounded-lg animate-pulse"></div>
+                      <div className="w-24 h-4 bg-white/10 rounded animate-pulse"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Activity Skeleton */}
+            <div className="lg:col-span-2">
+              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                <div className="w-40 h-6 bg-white/10 rounded animate-pulse mb-4"></div>
+                <div className="space-y-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex items-center gap-4 p-3 bg-white/5 rounded-lg">
+                      <div className="w-10 h-10 bg-white/10 rounded-full animate-pulse"></div>
+                      <div className="flex-1">
+                        <div className="w-32 h-4 bg-white/10 rounded animate-pulse mb-1"></div>
+                        <div className="w-24 h-3 bg-white/10 rounded animate-pulse"></div>
+                      </div>
+                      <div className="w-16 h-4 bg-white/10 rounded animate-pulse"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* System Status Skeleton */}
+          <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+            <div className="w-32 h-6 bg-white/10 rounded animate-pulse mb-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                  <div className="w-20 h-4 bg-white/10 rounded animate-pulse"></div>
+                  <div className="w-16 h-4 bg-white/10 rounded animate-pulse"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState("");
@@ -86,11 +200,7 @@ export default function AdminDashboard() {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <div className="text-white text-lg">Loading...</div>
-      </div>
-    );
+    return <AdminDashboardSkeleton />;
   }
 
   return (
@@ -146,12 +256,7 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <div className="relative z-10 px-6 pb-6">
         {loading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto mb-4"></div>
-              <p className="text-white/60">Loading dashboard data...</p>
-            </div>
-          </div>
+          <AdminDashboardSkeleton />
         ) : stats ? (
           <div className="space-y-6">
             {/* Key Metrics - Top Row */}
@@ -178,147 +283,145 @@ export default function AdminDashboard() {
                 trend={getTrendText(stats.activeLoans, 'loans')}
               />
               <MetricCard
-                title="Payment Rate"
-                value={`${stats.paymentRate}%`}
+                title="Total Repayments"
+                value={stats.totalRepayments}
                 icon="chart-bar"
                 color="orange"
-                trend={getTrendText(stats.paymentRate, 'payments')}
+                trend={getTrendText(stats.totalRepayments, 'repayments')}
               />
             </div>
 
-            {/* Financial Overview - Large Cards */}
+            {/* Financial Cards - Second Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <FinancialCard
                 title="Total Loan Portfolio"
                 value={formatCurrency(stats.totalLoanAmount)}
-                subtitle={`${stats.activeLoans} active loans`}
-                icon="banknotes"
+                subtitle="Total amount lent"
+                icon="currency-dollar"
                 color="green"
-                trend={getTrendText(stats.totalLoanAmount, 'loans')}
+                trend={formatCurrency(stats.totalLoanAmount)}
               />
               <FinancialCard
-                title="Total Repaid"
+                title="Total Collections"
                 value={formatCurrency(stats.totalRepaid)}
-                subtitle={`${stats.paidRepayments} payments received`}
-                icon="check-circle"
+                subtitle="Total amount collected"
+                icon="banknotes"
                 color="blue"
-                trend={formatPercentage(stats.totalRepaid, stats.totalLoanAmount)}
+                trend={formatCurrency(stats.totalRepaid)}
               />
               <FinancialCard
-                title="Outstanding Balance"
+                title={stats.isOverpaid ? "Overpayment" : "Outstanding Balance"}
                 value={formatCurrency(stats.outstandingBalance)}
-                subtitle={`${stats.unpaidRepayments} pending repayments`}
-                icon="exclamation-triangle"
-                color={stats.outstandingBalance > 0 ? "red" : "gray"}
-                trend={getTrendText(stats.outstandingBalance, 'loans')}
+                subtitle={stats.isOverpaid ? "Excess payments received" : "Amount still owed"}
+                icon={stats.isOverpaid ? "check-circle" : "exclamation-triangle"}
+                color={stats.isOverpaid ? "green" : "red"}
+                trend={formatCurrency(stats.outstandingBalance)}
               />
             </div>
 
-            {/* Activity & Alerts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Recent Activity */}
-              <div className="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-6">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                  Recent Activity
-                </h3>
-                <div className="space-y-3">
-                  <ActivityItem
-                    icon="document-text"
-                    title="New Loans"
-                    value={stats.recentLoans}
-                    period="this month"
-                    color="green"
-                  />
-                  <ActivityItem
-                    icon="credit-card"
-                    title="Payments Received"
-                    value={stats.recentPayments}
-                    period="this month"
-                    color="blue"
-                  />
-                  <ActivityItem
-                    icon="clock"
-                    title="Overdue Repayments"
-                    value={stats.overdueRepayments}
-                    period="currently"
-                    color="red"
-                  />
+            {/* Quick Actions and Recent Activity */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Quick Actions */}
+              <div className="lg:col-span-1">
+                <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                  <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
+                  <div className="space-y-3">
+                    <QuickActionButton
+                      title="Add New Loan"
+                      icon="plus-circle"
+                      href="/admin/loans"
+                      color="green"
+                    />
+                    <QuickActionButton
+                      title="Add Company"
+                      icon="building-office"
+                      href="/admin/companies"
+                      color="blue"
+                    />
+                    <QuickActionButton
+                      title="View Reports"
+                      icon="chart-bar"
+                      href="/admin/reports"
+                      color="purple"
+                    />
+                    <QuickActionButton
+                      title="Manage Users"
+                      icon="users"
+                      href="/admin/users"
+                      color="orange"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Quick Actions */}
-              <div className="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-6">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  Quick Actions
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <QuickActionButton
-                    title="Add Loan"
-                    icon="php-text"
-                    href="/admin/loans"
-                    color="green"
-                  />
-                  <QuickActionButton
-                    title="Add Company"
-                    icon="building-office"
-                    href="/admin/companies"
-                    color="blue"
-                  />
-                  <QuickActionButton
-                    title="View Reports"
-                    icon="chart-bar"
-                    href="/admin/reports"
-                    color="purple"
-                  />
-                  <QuickActionButton
-                    title="Manage Users"
-                    icon="users"
-                    href="/admin/users"
-                    color="orange"
-                  />
+              {/* Recent Activity */}
+              <div className="lg:col-span-2">
+                <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                  <h3 className="text-lg font-semibold text-white mb-4">Recent Activity</h3>
+                  <div className="space-y-4">
+                    <ActivityItem
+                      icon="plus-circle"
+                      title="New loan created"
+                      value="₱50,000"
+                      period="2 hours ago"
+                      color="green"
+                    />
+                    <ActivityItem
+                      icon="banknotes"
+                      title="Payment received"
+                      value="₱25,000"
+                      period="4 hours ago"
+                      color="blue"
+                    />
+                    <ActivityItem
+                      icon="building-office"
+                      title="New company registered"
+                      value="TechCorp Inc."
+                      period="6 hours ago"
+                      color="purple"
+                    />
+                    <ActivityItem
+                      icon="user-plus"
+                      title="New user added"
+                      value="john.doe@company.com"
+                      period="1 day ago"
+                      color="orange"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* System Status */}
-            <div className="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                System Status
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+              <h3 className="text-lg font-semibold text-white mb-4">System Status</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatusItem
-                  title="Database Connection"
-                  status="Connected"
-                  color="green"
-                />
-                <StatusItem
-                  title="API Status"
+                  title="Database"
                   status="Online"
                   color="green"
                 />
                 <StatusItem
-                  title="Auto Refresh"
-                  status="Every 30s"
-                  color="blue"
+                  title="API Services"
+                  status="Online"
+                  color="green"
+                />
+                <StatusItem
+                  title="Payment Gateway"
+                  status="Online"
+                  color="green"
+                />
+                <StatusItem
+                  title="Email Service"
+                  status="Online"
+                  color="green"
                 />
               </div>
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <p className="text-white/60 text-lg">No data available</p>
-            </div>
+          <div className="text-center py-12">
+            <p className="text-white/60">No data available</p>
           </div>
         )}
       </div>
@@ -502,6 +605,16 @@ function QuickActionButton({ title, icon, href, color }) {
       users: (
         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 16 16">
           <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
+        </svg>
+      ),
+      "plus-circle": (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12V12.75z" />
+        </svg>
+      ),
+      "user-plus": (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zm-4 7a6 6 0 01-6 6H6a6 6 0 01-6-6v-1a4 4 0 014-4h10a4 4 0 014 4v1a6 6 0 01-6 6zm-7 0H6a1 1 0 00-1 1v1a1 1 0 001 1h10a1 1 0 001-1v-1a1 1 0 00-1-1H6z" />
         </svg>
       )
     };

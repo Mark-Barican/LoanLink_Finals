@@ -23,17 +23,28 @@ export async function GET() {
     ]);
 
     // Get financial data - handle both old and new schema
-    const [loanAmounts, repaidAmounts, paidRepayments, unpaidRepayments] = await Promise.all([
+    const [loanAmounts, repaidAmounts, paidRepayments, unpaidRepayments, totalRepaymentsQuery] = await Promise.all([
       query('SELECT COALESCE(SUM(principal), 0) as total FROM loans').catch(() => ({ rows: [{ total: 0 }] })),
       query('SELECT COALESCE(SUM(amount), 0) as total FROM payments').catch(() => ({ rows: [{ total: 0 }] })),
       query('SELECT COUNT(*) as count FROM repayments WHERE status = $1 OR paid = $2', ['paid', true]).catch(() => ({ rows: [{ count: 0 }] })),
-      query('SELECT COUNT(*) as count FROM repayments WHERE status = $1 OR paid = $2', ['unpaid', false]).catch(() => ({ rows: [{ count: 0 }] }))
+      query('SELECT COUNT(*) as count FROM repayments WHERE status = $1 OR paid = $2', ['unpaid', false]).catch(() => ({ rows: [{ count: 0 }] })),
+      query('SELECT COALESCE(SUM(amount), 0) as total FROM repayments').catch(() => ({ rows: [{ total: 0 }] }))
     ]);
 
-    // Calculate additional stats
+    // Calculate additional stats with proper outstanding balance calculation
     const totalLoanAmount = parseFloat(loanAmounts.rows[0]?.total || 0);
     const totalRepaid = parseFloat(repaidAmounts.rows[0]?.total || 0);
-    const outstandingBalance = totalLoanAmount - totalRepaid;
+    const totalRepaymentsAmount = parseFloat(totalRepaymentsQuery.rows[0]?.total || 0);
+    
+    // Outstanding balance: if overpaid (totalRepaid > totalLoanAmount), show positive amount
+    // If underpaid (totalRepaid < totalLoanAmount), show negative amount
+    const outstandingBalance = totalRepaid > totalLoanAmount 
+      ? totalRepaid - totalLoanAmount  // Overpaid - show positive
+      : totalLoanAmount - totalRepaid; // Underpaid - show positive
+    
+    const isOverpaid = totalRepaid > totalLoanAmount;
+    const isUnderpaid = totalRepaid < totalLoanAmount;
+    
     const totalRepaymentsCount = parseInt(repayments.rows[0]?.count || 0);
     const paymentRate = totalRepaymentsCount > 0
       ? Math.round((parseInt(paidRepayments.rows[0]?.count || 0) / totalRepaymentsCount) * 100)
@@ -65,7 +76,7 @@ export async function GET() {
     const companiesTrend = parseInt(companies.rows[0]?.count || 0) - parseInt(previousMonthCompanies.rows[0]?.count || 0);
 
     // Get data for charts
-    const [monthlyLoans, monthlyPayments, roleDistribution, departmentDistribution, loanStatusDistribution] = await Promise.all([
+    const [monthlyLoans, monthlyPayments, roleDistribution, departmentDistribution, paymentMethodsDistribution, companyLoanDistribution, repaymentStatusByMonth] = await Promise.all([
       // Monthly loans for the last 6 months
       query(`
         SELECT 
@@ -108,21 +119,44 @@ export async function GET() {
         ORDER BY count DESC
       `).catch(() => ({ rows: [] })),
       
-      // Loan status distribution (active vs completed)
+      // Payment methods distribution
       query(`
         SELECT 
-          CASE 
-            WHEN end_date IS NULL OR end_date > CURRENT_DATE THEN 'Active'
-            ELSE 'Completed'
-          END as status,
+          COALESCE(method, 'cash') as method,
           COUNT(*) as count,
-          COALESCE(SUM(principal), 0) as total_amount
-        FROM loans
-        GROUP BY 
-          CASE 
-            WHEN end_date IS NULL OR end_date > CURRENT_DATE THEN 'Active'
-            ELSE 'Completed'
-          END
+          COALESCE(SUM(amount), 0) as total_amount
+        FROM payments
+        GROUP BY COALESCE(method, 'cash')
+        ORDER BY count DESC
+      `).catch(() => ({ rows: [] })),
+      
+      // Company loan distribution (top 10 companies by loan amount)
+      query(`
+        SELECT 
+          c.name as company_name,
+          COUNT(l.id) as loan_count,
+          COALESCE(SUM(l.principal), 0) as total_loan_amount,
+          COALESCE(SUM(CASE WHEN l.end_date IS NULL OR l.end_date > CURRENT_DATE THEN l.principal ELSE 0 END), 0) as active_loan_amount
+        FROM companies c
+        LEFT JOIN loans l ON c.id = l.company_id
+        GROUP BY c.id, c.name
+        HAVING COUNT(l.id) > 0
+        ORDER BY total_loan_amount DESC
+        LIMIT 10
+      `).catch(() => ({ rows: [] })),
+      
+      // Repayment status by month (last 6 months)
+      query(`
+        SELECT 
+          EXTRACT(MONTH FROM r.due_date) as month,
+          EXTRACT(YEAR FROM r.due_date) as year,
+          r.status,
+          COUNT(*) as count,
+          COALESCE(SUM(r.amount), 0) as total_amount
+        FROM repayments r
+        WHERE r.due_date >= NOW() - INTERVAL '6 months'
+        GROUP BY EXTRACT(MONTH FROM r.due_date), EXTRACT(YEAR FROM r.due_date), r.status
+        ORDER BY year, month, r.status
       `).catch(() => ({ rows: [] }))
     ]);
 
@@ -148,12 +182,55 @@ export async function GET() {
         department: row.department,
         count: parseInt(row.count)
       })),
-      loanStatusDistribution: loanStatusDistribution.rows.map(row => ({
+      paymentMethodsDistribution: paymentMethodsDistribution.rows.map(row => ({
+        method: row.method,
+        count: parseInt(row.count),
+        amount: parseFloat(row.total_amount)
+      })),
+      companyLoanDistribution: companyLoanDistribution.rows.map(row => ({
+        company: row.company_name,
+        loanCount: parseInt(row.loan_count),
+        totalAmount: parseFloat(row.total_loan_amount),
+        activeAmount: parseFloat(row.active_loan_amount)
+      })),
+      repaymentStatusByMonth: repaymentStatusByMonth.rows.map(row => ({
+        month: monthNames[parseInt(row.month) - 1],
         status: row.status,
         count: parseInt(row.count),
         amount: parseFloat(row.total_amount)
       }))
     };
+
+    // Get additional detailed statistics
+    const [averageLoanAmount, averageRepaymentAmount, topPerformingCompanies, overdueAmount] = await Promise.all([
+      query('SELECT COALESCE(AVG(principal), 0) as avg_amount FROM loans').catch(() => ({ rows: [{ avg_amount: 0 }] })),
+      query('SELECT COALESCE(AVG(amount), 0) as avg_amount FROM repayments').catch(() => ({ rows: [{ avg_amount: 0 }] })),
+      query(`
+        SELECT 
+          c.name as company_name,
+          COUNT(l.id) as loan_count,
+          COALESCE(SUM(l.principal), 0) as total_borrowed,
+          COALESCE(SUM(p.amount), 0) as total_paid,
+          CASE 
+            WHEN COALESCE(SUM(l.principal), 0) > 0 
+            THEN ROUND((COALESCE(SUM(p.amount), 0) / COALESCE(SUM(l.principal), 0)) * 100, 2)
+            ELSE 0 
+          END as repayment_rate
+        FROM companies c
+        LEFT JOIN loans l ON c.id = l.company_id
+        LEFT JOIN repayments r ON l.id = r.loan_id
+        LEFT JOIN payments p ON r.id = p.repayment_id
+        GROUP BY c.id, c.name
+        HAVING COUNT(l.id) > 0
+        ORDER BY repayment_rate DESC
+        LIMIT 5
+      `).catch(() => ({ rows: [] })),
+      query(`
+        SELECT COALESCE(SUM(r.amount), 0) as total_overdue
+        FROM repayments r
+        WHERE r.due_date < CURRENT_DATE AND (r.status = 'unpaid' OR r.paid = false)
+      `).catch(() => ({ rows: [{ total_overdue: 0 }] }))
+    ]);
 
     const stats = {
       users: parseInt(users.rows[0]?.count || 0),
@@ -163,12 +240,25 @@ export async function GET() {
       totalLoanAmount: totalLoanAmount,
       totalRepaid: totalRepaid,
       outstandingBalance: outstandingBalance,
+      isOverpaid: isOverpaid,
+      isUnderpaid: isUnderpaid,
       paidRepayments: parseInt(paidRepayments.rows[0]?.count || 0),
       unpaidRepayments: parseInt(unpaidRepayments.rows[0]?.count || 0),
       paymentRate: paymentRate,
       recentLoans: parseInt(recentLoans.rows[0]?.count || 0),
       recentPayments: parseInt(recentPayments.rows[0]?.count || 0),
       overdueRepayments: parseInt(overdueRepayments.rows[0]?.count || 0),
+      averageLoanAmount: parseFloat(averageLoanAmount.rows[0]?.avg_amount || 0),
+      averageRepaymentAmount: parseFloat(averageRepaymentAmount.rows[0]?.avg_amount || 0),
+      overdueAmount: parseFloat(overdueAmount.rows[0]?.total_overdue || 0),
+      totalRepaymentsAmount: totalRepaymentsAmount,
+      topPerformingCompanies: topPerformingCompanies.rows.map(row => ({
+        company: row.company_name,
+        loanCount: parseInt(row.loan_count),
+        totalBorrowed: parseFloat(row.total_borrowed),
+        totalPaid: parseFloat(row.total_paid),
+        repaymentRate: parseFloat(row.repayment_rate)
+      })),
       trends: {
         loans: loansTrend,
         payments: paymentsTrend,
