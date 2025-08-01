@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import StaffNavbar from "./StaffNavbar";
 
 // Dynamically import Link to avoid prerendering issues
 const DynamicLink = dynamic(() => import("next/link"), { ssr: false });
@@ -19,7 +20,7 @@ export default function StaffDashboard() {
       setLoading(true);
       const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user")) : null;
       const res = await fetch("/api/reports", {
-        cache: 'no-store', // Ensure fresh data
+        cache: 'no-store',
         headers: {
           'x-user-role': user?.role || 'staff'
         }
@@ -98,7 +99,9 @@ export default function StaffDashboard() {
   }
 
   return (
-    <div className="relative min-h-screen bg-slate-950 pt-20">
+    <div className="relative min-h-screen bg-slate-950">
+      <StaffNavbar currentPage="dashboard" />
+      
       {/* Background Pattern */}
       <div className="fixed inset-0 -z-10">
         <div className="h-full w-full bg-slate-950 [&>div]:absolute [&>div]:bottom-0 [&>div]:right-[-20%] [&>div]:top-[-10%] [&>div]:h-[500px] [&>div]:w-[500px] [&>div]:rounded-full [&>div]:bg-[radial-gradient(circle_farthest-side,rgba(249,115,22,.15),rgba(255,255,255,0))]">
@@ -107,7 +110,7 @@ export default function StaffDashboard() {
       </div>
       
       {/* Header */}
-      <div className="relative z-10 p-6">
+      <div className="relative z-10 p-6 pt-24">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-orange-400 mb-1">Staff Dashboard</h1>
@@ -125,12 +128,18 @@ export default function StaffDashboard() {
             >
               {loading ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-900"></div>
+                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
                   Refreshing...
                 </>
               ) : (
                 <>
-                  🔄 Refresh
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Refresh
                 </>
               )}
             </button>
@@ -147,9 +156,12 @@ export default function StaffDashboard() {
       {/* Main Content */}
       <div className="relative z-20 px-6 pb-6">
         {loading ? (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-400 mx-auto mb-4"></div>
+              <svg className="animate-spin h-12 w-12 text-orange-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
               <p className="text-white/60">Loading dashboard data...</p>
             </div>
           </div>
@@ -160,28 +172,44 @@ export default function StaffDashboard() {
               <MetricCard
                 title="Total Users"
                 value={stats.users}
-                icon="👥"
+                icon={
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                  </svg>
+                }
                 color="blue"
                 trend={getTrendText(stats.users, 'users')}
               />
               <MetricCard
                 title="Active Companies"
                 value={stats.companies}
-                icon="🏢"
+                icon={
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                }
                 color="purple"
                 trend={getTrendText(stats.companies, 'companies')}
               />
               <MetricCard
                 title="Active Loans"
                 value={stats.activeLoans}
-                icon="💰"
+                icon={
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                  </svg>
+                }
                 color="green"
                 trend={getTrendText(stats.activeLoans, 'loans')}
               />
               <MetricCard
                 title="Payment Rate"
                 value={`${stats.paymentRate}%`}
-                icon="📈"
+                icon={
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                }
                 color="orange"
                 trend={getTrendText(stats.paymentRate, 'payments')}
               />
@@ -193,7 +221,11 @@ export default function StaffDashboard() {
                 title="Total Loan Portfolio"
                 value={formatCurrency(stats.totalLoanAmount)}
                 subtitle={`${stats.activeLoans} active loans`}
-                icon="🏦"
+                icon={
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                }
                 color="green"
                 trend={getTrendText(stats.totalLoanAmount, 'loans')}
               />
@@ -201,7 +233,11 @@ export default function StaffDashboard() {
                 title="Total Repaid"
                 value={formatCurrency(stats.totalRepaid)}
                 subtitle={`${stats.paidRepayments} payments received`}
-                icon="✅"
+                icon={
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                }
                 color="blue"
                 trend={formatPercentage(stats.totalRepaid, stats.totalLoanAmount)}
               />
@@ -209,7 +245,11 @@ export default function StaffDashboard() {
                 title="Outstanding Balance"
                 value={formatCurrency(stats.outstandingBalance)}
                 subtitle={`${stats.unpaidRepayments} pending repayments`}
-                icon="⚠️"
+                icon={
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                }
                 color={stats.outstandingBalance > 0 ? "red" : "gray"}
                 trend={getTrendText(stats.outstandingBalance, 'loans')}
               />
@@ -220,25 +260,40 @@ export default function StaffDashboard() {
               {/* Recent Activity */}
               <div className="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-6">
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                  📊 Recent Activity
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  Recent Activity
                 </h3>
                 <div className="space-y-3">
                   <ActivityItem
-                    icon="📝"
+                    icon={
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                    }
                     title="New Loans"
                     value={stats.recentLoans}
                     period="this month"
                     color="green"
                   />
                   <ActivityItem
-                    icon="💳"
+                    icon={
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                    }
                     title="Payments Received"
                     value={stats.recentPayments}
                     period="this month"
                     color="blue"
                   />
                   <ActivityItem
-                    icon="⏰"
+                    icon={
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    }
                     title="Overdue Repayments"
                     value={stats.overdueRepayments}
                     period="currently"
@@ -250,31 +305,50 @@ export default function StaffDashboard() {
               {/* Quick Actions */}
               <div className="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-6">
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                  ⚡ Quick Actions
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Quick Actions
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   <QuickActionButton
                     title="View Loans"
-                    icon="💰"
-                    href="/admin/loans"
+                    icon={
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                      </svg>
+                    }
+                    href="/staff/loans"
                     color="green"
                   />
                   <QuickActionButton
                     title="View Companies"
-                    icon="🏢"
-                    href="/admin/companies"
+                    icon={
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                    }
+                    href="/staff/companies"
                     color="blue"
                   />
                   <QuickActionButton
                     title="View Reports"
-                    icon="📊"
-                    href="/admin/reports"
+                    icon={
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    }
+                    href="/staff/reports"
                     color="purple"
                   />
                   <QuickActionButton
                     title="View Payments"
-                    icon="💳"
-                    href="/admin/payments"
+                    icon={
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                    }
+                    href="/staff/payments"
                     color="orange"
                   />
                 </div>
@@ -284,7 +358,11 @@ export default function StaffDashboard() {
             {/* System Status */}
             <div className="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-6">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                🔧 System Status
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                System Status
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <StatusItem
@@ -306,7 +384,7 @@ export default function StaffDashboard() {
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <p className="text-white/60 text-lg">No data available</p>
             </div>
@@ -330,7 +408,7 @@ function MetricCard({ title, value, icon, color, trend }) {
   return (
     <div className={`${colors[color]} border rounded-xl p-4 backdrop-blur-sm hover:scale-105 transition-transform duration-200`}>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-2xl">{icon}</span>
+        <div className="text-white">{icon}</div>
         <span className="text-xs text-white/60">{trend}</span>
       </div>
       <div className="text-2xl font-bold text-white mb-1">{value}</div>
@@ -352,7 +430,7 @@ function FinancialCard({ title, value, subtitle, icon, color, trend }) {
   return (
     <div className={`${colors[color]} border rounded-xl p-6 backdrop-blur-sm hover:scale-105 transition-transform duration-200`}>
       <div className="flex items-center justify-between mb-4">
-        <span className="text-3xl">{icon}</span>
+        <div className="text-white">{icon}</div>
         <span className="text-xs text-white/60">{trend}</span>
       </div>
       <div className="text-3xl font-bold text-white mb-2">{value}</div>
@@ -373,7 +451,7 @@ function ActivityItem({ icon, title, value, period, color }) {
   return (
     <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
       <div className="flex items-center space-x-3">
-        <span className="text-xl">{icon}</span>
+        <div className={colors[color]}>{icon}</div>
         <div>
           <div className="text-white font-medium">{title}</div>
           <div className="text-white/60 text-sm">{period}</div>
@@ -397,7 +475,7 @@ function QuickActionButton({ title, icon, href, color }) {
       href={href}
       className={`${colors[color]} rounded-lg p-4 text-center transition-colors duration-200 flex flex-col items-center space-y-2`}
     >
-      <span className="text-2xl">{icon}</span>
+      <div>{icon}</div>
       <span className="text-sm font-medium">{title}</span>
     </DynamicLink>
   );

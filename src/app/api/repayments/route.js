@@ -1,8 +1,8 @@
 import { query } from '../db.js';
 
-function isAdminOrManager(request) {
+function isAuthorized(request) {
   const role = request.headers.get('x-user-role');
-  return role === 'admin' || role === 'manager';
+  return role === 'admin' || role === 'manager' || role === 'staff';
 }
 
 export async function GET(request) {
@@ -103,7 +103,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  if (!isAdminOrManager(request)) {
+  if (!isAuthorized(request)) {
     return Response.json({ error: 'Forbidden' }, { status: 403 });
   }
   const { loan_id, due_date, amount, status = 'unpaid' } = await request.json();
@@ -118,7 +118,7 @@ export async function POST(request) {
 }
 
 export async function PUT(request) {
-  if (!isAdminOrManager(request)) {
+  if (!isAuthorized(request)) {
     return Response.json({ error: 'Forbidden' }, { status: 403 });
   }
   const { id, due_date, amount, status } = await request.json();
@@ -138,7 +138,7 @@ export async function PUT(request) {
 }
 
 export async function DELETE(request) {
-  if (!isAdminOrManager(request)) {
+  if (!isAuthorized(request)) {
     return Response.json({ error: 'Forbidden' }, { status: 403 });
   }
   const { id } = await request.json();
