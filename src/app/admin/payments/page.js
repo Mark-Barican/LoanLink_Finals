@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+
+// Dynamically import components to avoid prerendering issues
+const AdminNavbar = dynamic(() => import("../AdminNavbar"), { ssr: false });
 
 export default function PaymentManagement() {
   const [payments, setPayments] = useState([]);
@@ -23,6 +27,14 @@ export default function PaymentManagement() {
   });
   const [loading, setLoading] = useState(false);
   const [companyRepayments, setCompanyRepayments] = useState([]);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    limit: 10,
+    hasNextPage: false,
+    hasPrevPage: false
+  });
   const router = useRouter();
 
   // Define fetch functions with useCallback at the top level
@@ -48,28 +60,29 @@ export default function PaymentManagement() {
       if (!res.ok) {
         throw new Error('Failed to load company repayments');
       }
-      const data = await res.json();
-      setCompanyRepayments(data.filter(r => r.status === 'unpaid'));
+      const responseData = await res.json();
+      setCompanyRepayments(responseData.data.filter(r => r.status === 'unpaid'));
     } catch (error) {
       console.error("Failed to fetch company repayments:", error);
     }
   }, []);
 
-  const fetchPaymentsCallback = useCallback(async () => {
+  const fetchPaymentsCallback = useCallback(async (page = 1) => {
     setLoading(true);
     try {
       const url = selectedCompany 
-        ? `/api/payments?company_id=${selectedCompany}`
-        : "/api/payments";
+        ? `/api/payments?company_id=${selectedCompany}&page=${page}&limit=10`
+        : `/api/payments?page=${page}&limit=10`;
       console.log('🔍 Fetching payments from:', url);
       
       const res = await fetch(url);
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
-      const data = await res.json();
-      console.log('✅ Fetched payments:', data.length, 'records');
-      setPayments(data);
+      const responseData = await res.json();
+      console.log('✅ Fetched payments:', responseData.data.length, 'records');
+      setPayments(responseData.data);
+      setPagination(responseData.pagination);
     } catch (error) {
       const errorMsg = `Failed to load payments: ${error.message}`;
       setError(errorMsg);
@@ -90,9 +103,9 @@ export default function PaymentManagement() {
       if (!res.ok) {
         throw new Error('Failed to load repayments');
       }
-      const data = await res.json();
-      console.log('Fetched repayments:', data.length, 'records');
-      setRepayments(data.filter(r => r.status === 'unpaid'));
+      const responseData = await res.json();
+      console.log('Fetched repayments:', responseData.data.length, 'records');
+      setRepayments(responseData.data.filter(r => r.status === 'unpaid'));
     } catch (error) {
       console.error("Failed to fetch repayments:", error);
     }
@@ -111,17 +124,17 @@ export default function PaymentManagement() {
 
   useEffect(() => {
     if (selectedCompany) {
-      fetchPaymentsCallback();
+      fetchPaymentsCallback(1);
       fetchRepaymentsCallback();
     } else {
-      fetchPaymentsCallback();
+      fetchPaymentsCallback(1);
       fetchRepaymentsCallback();
     }
   }, [selectedCompany, fetchPaymentsCallback, fetchRepaymentsCallback]);
 
   // Calculate payment statistics
   const paymentStats = {
-    total: payments.length,
+    total: pagination.totalCount,
     totalAmount: payments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0),
     thisMonth: payments.filter(p => {
       const paymentDate = new Date(p.payment_date);
@@ -385,8 +398,85 @@ export default function PaymentManagement() {
     return badges[method] || badges.cash;
   }
 
+  // Pagination functions
+  const handlePageChange = (newPage) => {
+    fetchPaymentsCallback(newPage);
+  };
+
+  const renderPaginationControls = () => {
+    if (pagination.totalPages <= 1) return null;
+
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, pagination.currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(pagination.totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    // Previous button
+    if (pagination.hasPrevPage) {
+      pages.push(
+        <button
+          key="prev"
+          onClick={() => handlePageChange(pagination.currentPage - 1)}
+          className="px-3 py-2 text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+        >
+          Previous
+        </button>
+      );
+    }
+
+    // Page numbers
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+            i === pagination.currentPage
+              ? 'bg-green-400 text-slate-900'
+              : 'text-white bg-white/10 hover:bg-white/20'
+          }`}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    // Next button
+    if (pagination.hasNextPage) {
+      pages.push(
+        <button
+          key="next"
+          onClick={() => handlePageChange(pagination.currentPage + 1)}
+          className="px-3 py-2 text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+        >
+          Next
+        </button>
+      );
+    }
+
+    return (
+      <div className="flex items-center justify-between mt-6">
+        <div className="text-sm text-white/60">
+          Showing {((pagination.currentPage - 1) * pagination.limit) + 1} to{' '}
+          {Math.min(pagination.currentPage * pagination.limit, pagination.totalCount)} of{' '}
+          {pagination.totalCount} payments
+        </div>
+        <div className="flex items-center gap-2">
+          {pages}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="relative min-h-screen bg-slate-950 pt-20">
+    <div className="relative min-h-screen bg-slate-950">
+      {/* Admin Navbar */}
+      <AdminNavbar currentPage="payments" />
+      
       {/* Background Pattern */}
       <div className="fixed inset-0 -z-10">
         <div className="h-full w-full bg-slate-950 [&>div]:absolute [&>div]:bottom-0 [&>div]:right-[-20%] [&>div]:top-[-10%] [&>div]:h-[500px] [&>div]:w-[500px] [&>div]:rounded-full [&>div]:bg-[radial-gradient(circle_farthest-side,rgba(34,197,94,.15),rgba(255,255,255,0))]">
@@ -395,7 +485,7 @@ export default function PaymentManagement() {
       </div>
       
       {/* Content */}
-      <div className="relative z-10 px-4 py-3">
+      <div className="relative z-10 px-4 py-3 pt-24">
         <div className="backdrop-blur-md bg-white/10 rounded-2xl border border-white/20 p-6 w-full">
           <h1 className="text-2xl font-bold text-green-400 mb-6 text-center">Payment Management</h1>
           
@@ -599,6 +689,9 @@ export default function PaymentManagement() {
             </table>
           </div>
           
+          {/* Pagination Controls */}
+          {renderPaginationControls()}
+
           {/* Add/Edit Form Modal */}
           {showForm && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

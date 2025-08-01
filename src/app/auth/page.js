@@ -81,7 +81,7 @@ export default function AuthPage() {
               router.push("/admin");
               break;
             case 'manager':
-              router.push("/manager");
+              router.push("/manager/dashboard");
               break;
             case 'staff':
               router.push("/staff");
@@ -113,7 +113,7 @@ export default function AuthPage() {
           router.push("/admin");
           break;
         case 'manager':
-          router.push("/manager");
+          router.push("/manager/dashboard");
           break;
         case 'staff':
           router.push("/staff");

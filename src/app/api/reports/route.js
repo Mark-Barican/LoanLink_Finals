@@ -1,10 +1,27 @@
 import { query } from '../db.js';
 
-export async function GET() {
+// Helper function to check if user is authorized
+function isAuthorized(request) {
+  const userRole = request.headers.get('x-user-role');
+  return userRole === 'admin' || userRole === 'manager' || userRole === 'staff';
+}
+
+export async function GET(request) {
   try {
+    console.log('Reports API called');
+    
+    // Check authorization
+    if (!isAuthorized(request)) {
+      console.log('Unauthorized access attempt');
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    console.log('Authorization passed, testing database connection...');
+
     // Test database connection first
     try {
       await query('SELECT 1');
+      console.log('Database connection successful');
     } catch (dbError) {
       console.error('Database connection failed:', dbError);
       return Response.json({
@@ -14,12 +31,13 @@ export async function GET() {
     }
 
     // Get all data for statistics (with .catch for robustness)
-    const [users, companies, loans, repayments, payments] = await Promise.all([
+    const [users, companies, loans, repayments, payments, activeLoans] = await Promise.all([
       query('SELECT COUNT(*) as count FROM users').catch(() => ({ rows: [{ count: 0 }] })),
       query('SELECT COUNT(*) as count FROM companies').catch(() => ({ rows: [{ count: 0 }] })),
       query('SELECT COUNT(*) as count FROM loans').catch(() => ({ rows: [{ count: 0 }] })),
       query('SELECT COUNT(*) as count FROM repayments').catch(() => ({ rows: [{ count: 0 }] })),
-      query('SELECT COUNT(*) as count FROM payments').catch(() => ({ rows: [{ count: 0 }] }))
+      query('SELECT COUNT(*) as count FROM payments').catch(() => ({ rows: [{ count: 0 }] })),
+      query('SELECT COUNT(*) as count FROM loans WHERE status = $1', ['active']).catch(() => ({ rows: [{ count: 0 }] }))
     ]);
 
     // Get financial data - handle both old and new schema
@@ -37,7 +55,7 @@ export async function GET() {
     const totalRepaymentsAmount = parseFloat(totalRepaymentsQuery.rows[0]?.total || 0);
     
     // Outstanding balance: if overpaid (totalRepaid > totalLoanAmount), show positive amount
-    // If underpaid (totalRepaid < totalLoanAmount), show negative amount
+    // If underpaid (totalRepaid < totalLoanAmount), show positive amount
     const outstandingBalance = totalRepaid > totalLoanAmount 
       ? totalRepaid - totalLoanAmount  // Overpaid - show positive
       : totalLoanAmount - totalRepaid; // Underpaid - show positive
@@ -136,7 +154,7 @@ export async function GET() {
           c.name as company_name,
           COUNT(l.id) as loan_count,
           COALESCE(SUM(l.principal), 0) as total_loan_amount,
-          COALESCE(SUM(CASE WHEN l.end_date IS NULL OR l.end_date > CURRENT_DATE THEN l.principal ELSE 0 END), 0) as active_loan_amount
+          COALESCE(SUM(CASE WHEN l.status = 'active' THEN l.principal ELSE 0 END), 0) as active_loan_amount
         FROM companies c
         LEFT JOIN loans l ON c.id = l.company_id
         GROUP BY c.id, c.name
@@ -235,7 +253,8 @@ export async function GET() {
     const stats = {
       users: parseInt(users.rows[0]?.count || 0),
       companies: parseInt(companies.rows[0]?.count || 0),
-      activeLoans: parseInt(loans.rows[0]?.count || 0),
+      totalLoans: parseInt(loans.rows[0]?.count || 0),
+      activeLoans: parseInt(activeLoans.rows[0]?.count || 0),
       totalRepayments: parseInt(repayments.rows[0]?.count || 0),
       totalLoanAmount: totalLoanAmount,
       totalRepaid: totalRepaid,
@@ -264,7 +283,8 @@ export async function GET() {
         payments: paymentsTrend,
         companies: companiesTrend
       },
-      charts: chartData
+      charts: chartData,
+      lastUpdated: new Date().toISOString()
     };
 
     return Response.json(stats);

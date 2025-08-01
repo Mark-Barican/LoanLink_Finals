@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+
+// Dynamically import components to avoid prerendering issues
+const AdminNavbar = dynamic(() => import("../AdminNavbar"), { ssr: false });
 
 export default function CompanyManagement() {
   const [companies, setCompanies] = useState([]);
@@ -23,7 +27,7 @@ export default function CompanyManagement() {
 
   useEffect(() => {
     const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user")) : null;
-    if (!user || (user.role !== "admin" && user.role !== "manager")) {
+    if (!user || user.role !== "admin") {
       router.replace("/auth");
       return;
     }
@@ -215,7 +219,10 @@ export default function CompanyManagement() {
   ];
 
   return (
-    <div className="relative min-h-screen bg-slate-950 pt-20">
+    <div className="relative min-h-screen bg-slate-950">
+      {/* Admin Navbar */}
+      <AdminNavbar currentPage="companies" />
+      
       {/* Background Pattern */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-green-400/5 via-blue-400/5 to-orange-400/5"></div>
@@ -223,7 +230,7 @@ export default function CompanyManagement() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 px-4 pb-6">
+      <div className="relative z-10 px-4 pb-6 pt-24">
         <div className="backdrop-blur-md bg-white/10 rounded-2xl border border-white/20 p-6 w-full">
           <h1 className="text-2xl font-bold text-green-400 mb-6 text-center">Company Management</h1>
           

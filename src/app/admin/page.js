@@ -3,13 +3,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 
-// Dynamically import Link to avoid prerendering issues
+// Dynamically import components to avoid prerendering issues
 const DynamicLink = dynamic(() => import("next/link"), { ssr: false });
+const AdminNavbar = dynamic(() => import("./AdminNavbar"), { ssr: false });
 
 // Skeleton Loading Component
 function AdminDashboardSkeleton() {
   return (
-    <div className="relative min-h-screen bg-slate-950 pt-20">
+    <div className="relative min-h-screen bg-slate-950">
       {/* Background Pattern */}
       <div className="fixed inset-0 -z-10">
         <div className="h-full w-full bg-slate-950 [&>div]:absolute [&>div]:bottom-0 [&>div]:right-[-20%] [&>div]:top-[-10%] [&>div]:h-[500px] [&>div]:w-[500px] [&>div]:rounded-full [&>div]:bg-[radial-gradient(circle_farthest-side,rgba(34,197,94,.15),rgba(255,255,255,0))]">
@@ -18,11 +19,11 @@ function AdminDashboardSkeleton() {
       </div>
       
       {/* Header Skeleton */}
-      <div className="relative z-10 p-6">
+      <div className="relative z-10 pt-24 px-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <div className="w-48 h-8 bg-white/10 rounded-lg animate-pulse mb-2"></div>
-            <div className="w-32 h-4 bg-white/10 rounded animate-pulse"></div>
+            <div className="w-64 h-10 bg-white/10 rounded-lg animate-pulse mb-2"></div>
+            <div className="w-48 h-6 bg-white/10 rounded animate-pulse"></div>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
@@ -35,12 +36,12 @@ function AdminDashboardSkeleton() {
       </div>
 
       {/* Main Content Skeleton */}
-      <div className="relative z-10 px-6 pb-6">
-        <div className="space-y-6">
+      <div className="relative z-10 px-6 pb-8 max-w-7xl mx-auto">
+        <div className="space-y-8">
           {/* Key Metrics Skeleton */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white/5 rounded-xl p-6 border border-white/10">
+              <div key={i} className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 shadow-xl">
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-24 h-4 bg-white/10 rounded animate-pulse"></div>
                   <div className="w-8 h-8 bg-white/10 rounded-lg animate-pulse"></div>
@@ -54,7 +55,7 @@ function AdminDashboardSkeleton() {
           {/* Financial Cards Skeleton */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white/5 rounded-xl p-6 border border-white/10">
+              <div key={i} className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 shadow-xl">
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-32 h-5 bg-white/10 rounded animate-pulse"></div>
                   <div className="w-8 h-8 bg-white/10 rounded-lg animate-pulse"></div>
@@ -69,11 +70,11 @@ function AdminDashboardSkeleton() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Quick Actions Skeleton */}
             <div className="lg:col-span-1">
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 shadow-xl">
                 <div className="w-32 h-6 bg-white/10 rounded animate-pulse mb-4"></div>
                 <div className="space-y-3">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
+                    <div key={i} className="flex items-center gap-3 p-4 bg-slate-700/30 rounded-xl">
                       <div className="w-8 h-8 bg-white/10 rounded-lg animate-pulse"></div>
                       <div className="w-24 h-4 bg-white/10 rounded animate-pulse"></div>
                     </div>
@@ -84,11 +85,11 @@ function AdminDashboardSkeleton() {
 
             {/* Recent Activity Skeleton */}
             <div className="lg:col-span-2">
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 shadow-xl">
                 <div className="w-40 h-6 bg-white/10 rounded animate-pulse mb-4"></div>
                 <div className="space-y-4">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="flex items-center gap-4 p-3 bg-white/5 rounded-lg">
+                    <div key={i} className="flex items-center gap-4 p-4 bg-slate-700/30 rounded-xl">
                       <div className="w-10 h-10 bg-white/10 rounded-full animate-pulse"></div>
                       <div className="flex-1">
                         <div className="w-32 h-4 bg-white/10 rounded animate-pulse mb-1"></div>
@@ -103,11 +104,11 @@ function AdminDashboardSkeleton() {
           </div>
 
           {/* System Status Skeleton */}
-          <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 shadow-xl">
             <div className="w-32 h-6 bg-white/10 rounded animate-pulse mb-4"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                <div key={i} className="flex items-center justify-between p-4 bg-slate-700/30 rounded-xl">
                   <div className="w-20 h-4 bg-white/10 rounded animate-pulse"></div>
                   <div className="w-16 h-4 bg-white/10 rounded animate-pulse"></div>
                 </div>
@@ -131,18 +132,33 @@ export default function AdminDashboard() {
   async function fetchStats() {
     try {
       setLoading(true);
-      const res = await fetch("/api/reports", {
-        cache: 'no-store' // Ensure fresh data
-      });
-      if (!res.ok) {
-        throw new Error('Failed to load stats');
+      setError("");
+      
+      // Check if we're in a browser environment
+      if (typeof window === 'undefined') {
+        throw new Error('Not in browser environment');
       }
+      
+      const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user")) : null;
+      const res = await fetch("/api/reports", {
+        cache: 'no-store', // Ensure fresh data
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-role': user?.role || 'admin'
+        }
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${res.status}: Failed to load stats`);
+      }
+      
       const data = await res.json();
       setStats(data);
       setLastUpdated(new Date());
     } catch (e) {
       console.error('Fetch stats error:', e);
-      setError("Failed to load stats");
+      setError(e.message || "Failed to load stats. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -150,7 +166,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const userData = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user")) : null;
-    if (!userData) {
+    if (!userData || userData.role !== "admin") {
       router.replace("/auth");
       return;
     }
@@ -204,7 +220,10 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="relative min-h-screen bg-slate-950 pt-20">
+    <div className="relative min-h-screen bg-slate-950">
+      {/* Admin Navbar */}
+      <AdminNavbar currentPage="dashboard" />
+      
       {/* Background Pattern */}
       <div className="fixed inset-0 -z-10">
         <div className="h-full w-full bg-slate-950 [&>div]:absolute [&>div]:bottom-0 [&>div]:right-[-20%] [&>div]:top-[-10%] [&>div]:h-[500px] [&>div]:w-[500px] [&>div]:rounded-full [&>div]:bg-[radial-gradient(circle_farthest-side,rgba(34,197,94,.15),rgba(255,255,255,0))]">
@@ -213,11 +232,11 @@ export default function AdminDashboard() {
       </div>
       
       {/* Header */}
-      <div className="relative z-10 p-6">
+      <div className="relative z-10 pt-24 px-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-green-400 mb-1">Admin Dashboard</h1>
-            <p className="text-white/60 text-sm">Welcome back, {user.email}</p>
+            <h1 className="text-4xl font-bold text-green-400 mb-2">Admin Dashboard</h1>
+            <p className="text-white/60 text-lg">Welcome back, {user.email}</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
@@ -247,20 +266,23 @@ export default function AdminDashboard() {
         </div>
 
         {error && (
-          <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 mb-6">
+          <div className="bg-red-500/20 border border-red-500/30 backdrop-blur-sm rounded-xl p-4 mb-6 flex items-center gap-3">
+            <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
             <p className="text-red-300 text-sm">{error}</p>
           </div>
         )}
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 px-6 pb-6">
+      <div className="relative z-10 px-6 pb-8 max-w-7xl mx-auto">
         {loading ? (
           <AdminDashboardSkeleton />
         ) : stats ? (
-          <div className="space-y-6">
-            {/* Key Metrics - Top Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="space-y-8">
+              {/* Key Metrics - Top Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <MetricCard
                 title="Total Users"
                 value={stats.users}
@@ -297,7 +319,7 @@ export default function AdminDashboard() {
                 title="Total Loan Portfolio"
                 value={formatCurrency(stats.totalLoanAmount)}
                 subtitle="Total amount lent"
-                icon="currency-dollar"
+                icon="php-text"
                 color="green"
                 trend={formatCurrency(stats.totalLoanAmount)}
               />
@@ -323,8 +345,13 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Quick Actions */}
               <div className="lg:col-span-1">
-                <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                  <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
+                <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 shadow-xl">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Quick Actions
+                  </h3>
                   <div className="space-y-3">
                     <QuickActionButton
                       title="Add New Loan"
@@ -356,8 +383,13 @@ export default function AdminDashboard() {
 
               {/* Recent Activity */}
               <div className="lg:col-span-2">
-                <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                  <h3 className="text-lg font-semibold text-white mb-4">Recent Activity</h3>
+                <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 shadow-xl">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Recent Activity
+                  </h3>
                   <div className="space-y-4">
                     <ActivityItem
                       icon="plus-circle"
@@ -393,8 +425,13 @@ export default function AdminDashboard() {
             </div>
 
             {/* System Status */}
-            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-              <h3 className="text-lg font-semibold text-white mb-4">System Status</h3>
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/50 shadow-xl">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                System Status
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatusItem
                   title="Database"
@@ -452,10 +489,7 @@ function MetricCard({ title, value, icon, color, trend }) {
         </svg>
       ),
       "currency-dollar": (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2v20M15 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 8h8M8 16h8" />
-        </svg>
+        <span className="text-white font-bold text-lg">₱</span>
       ),
       "chart-bar": (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -470,14 +504,14 @@ function MetricCard({ title, value, icon, color, trend }) {
   };
 
   return (
-    <div className={`${colors[color]} border rounded-xl p-4 backdrop-blur-sm hover:scale-105 transition-transform duration-200`}>
-      <div className="flex items-center justify-between mb-2">
+    <div className={`${colors[color]} border rounded-2xl p-6 backdrop-blur-sm hover:scale-105 transition-all duration-300 hover:shadow-xl`}>
+      <div className="flex items-center justify-between mb-4">
         <div className="text-white">
           {getIcon(icon)}
         </div>
         <span className="text-xs text-white/60">{trend}</span>
       </div>
-      <div className="text-2xl font-bold text-white mb-1">{value}</div>
+      <div className="text-3xl font-bold text-white mb-2">{value}</div>
       <div className="text-sm text-white/60">{title}</div>
     </div>
   );
@@ -515,14 +549,14 @@ function FinancialCard({ title, value, subtitle, icon, color, trend }) {
   };
 
   return (
-    <div className={`${colors[color]} border rounded-xl p-6 backdrop-blur-sm hover:scale-105 transition-transform duration-200`}>
+    <div className={`${colors[color]} border rounded-2xl p-6 backdrop-blur-sm hover:scale-105 transition-all duration-300 hover:shadow-xl`}>
       <div className="flex items-center justify-between mb-4">
         <div className="text-white">
           {getIcon(icon)}
         </div>
         <span className="text-xs text-white/60">{trend}</span>
       </div>
-      <div className="text-3xl font-bold text-white mb-2">{value}</div>
+      <div className="text-4xl font-bold text-white mb-2">{value}</div>
       <div className="text-lg font-semibold text-white mb-1">{title}</div>
       <div className="text-sm text-white/60">{subtitle}</div>
     </div>
@@ -559,8 +593,8 @@ function ActivityItem({ icon, title, value, period, color }) {
   };
 
   return (
-    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-      <div className="flex items-center space-x-3">
+    <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-xl hover:bg-slate-700/50 transition-colors duration-200">
+      <div className="flex items-center space-x-4">
         <div className="text-white">
           {getIcon(icon)}
         </div>
@@ -585,9 +619,7 @@ function QuickActionButton({ title, icon, href, color }) {
   const getIcon = (iconName) => {
     const icons = {
       "currency-dollar": (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-        </svg>
+        <span className="text-white font-bold text-lg">₱</span>
       ),
       "php-text": (
         <span className="text-white font-bold text-lg">PHP</span>
@@ -618,15 +650,15 @@ function QuickActionButton({ title, icon, href, color }) {
         </svg>
       )
     };
-    return icons[iconName] || icons["currency-dollar"];
+    return icons[iconName] || icons["php-text"];
   };
 
   return (
     <DynamicLink
       href={href}
-      className={`${colors[color]} rounded-lg p-4 text-center transition-colors duration-200 flex flex-col items-center space-y-2`}
+      className={`${colors[color]} rounded-xl p-4 text-center transition-all duration-300 hover:scale-105 hover:shadow-lg flex flex-col items-center space-y-2`}
     >
-      <div>
+      <div className="bg-white/20 rounded-lg p-2">
         {getIcon(icon)}
       </div>
       <span className="text-sm font-medium">{title}</span>
@@ -643,8 +675,8 @@ function StatusItem({ title, status, color }) {
   };
 
   return (
-    <div className="text-center p-3 bg-white/5 rounded-lg">
-      <div className="text-white/60 text-sm mb-1">{title}</div>
+    <div className="text-center p-4 bg-slate-700/30 rounded-xl hover:bg-slate-700/50 transition-colors duration-200">
+      <div className="text-white/60 text-sm mb-2">{title}</div>
       <div className={`font-semibold ${colors[color]}`}>{status}</div>
     </div>
   );

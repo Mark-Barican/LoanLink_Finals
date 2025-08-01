@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+
+// Dynamically import components to avoid prerendering issues
+const AdminNavbar = dynamic(() => import("../AdminNavbar"), { ssr: false });
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -152,7 +156,10 @@ export default function UserManagement() {
   };
 
   return (
-    <div className="relative min-h-screen bg-slate-950 pt-20">
+    <div className="relative min-h-screen bg-slate-950">
+      {/* Admin Navbar */}
+      <AdminNavbar currentPage="users" />
+      
       {/* Background Pattern - Full Screen */}
       <div className="fixed inset-0 -z-10">
         <div className="h-full w-full bg-slate-950 [&>div]:absolute [&>div]:bottom-0 [&>div]:right-[-20%] [&>div]:top-[-10%] [&>div]:h-[500px] [&>div]:w-[500px] [&>div]:rounded-full [&>div]:bg-[radial-gradient(circle_farthest-side,rgba(34,197,94,.15),rgba(255,255,255,0))]">
@@ -161,7 +168,7 @@ export default function UserManagement() {
       </div>
       
       {/* Content - Full width layout */}
-      <div className="relative z-10 px-4 py-3">
+      <div className="relative z-10 px-4 py-3 pt-24">
         <div className="backdrop-blur-md bg-white/10 rounded-2xl border border-white/20 p-6 w-full">
           <h1 className="text-2xl font-bold text-green-400 mb-6 text-center">User Management</h1>
           

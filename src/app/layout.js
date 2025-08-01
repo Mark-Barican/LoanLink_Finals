@@ -1,6 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ClientNav from "./ClientNav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -72,8 +71,7 @@ export default function RootLayout({ children }) {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </head>
       <body className="antialiased min-h-screen bg-slate-950 text-white">
-        <ClientNav />
-        <main className="pt-16">
+        <main>
           {children}
         </main>
       </body>

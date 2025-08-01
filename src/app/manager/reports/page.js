@@ -18,7 +18,7 @@ import {
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 
 // Dynamically import components to avoid prerendering issues
-const AdminNavbar = dynamic(() => import("../AdminNavbar"), { ssr: false });
+const ManagerNavbar = dynamic(() => import("../ManagerNavbar"), { ssr: false });
 
 // Register Chart.js components
 ChartJS.register(
@@ -124,7 +124,7 @@ export default function ReportsPage() {
       const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user")) : null;
       const res = await fetch("/api/reports", {
         headers: {
-          'x-user-role': user?.role || 'admin'
+          'x-user-role': user?.role || 'manager'
         }
       });
       if (!res.ok) {
@@ -342,16 +342,16 @@ export default function ReportsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Admin Navbar */}
-      <AdminNavbar currentPage="reports" />
+      {/* Manager Navbar */}
+      <ManagerNavbar currentPage="reports" />
       
       {/* Header */}
       <div className="bg-white/5 backdrop-blur-md border-b border-white/10 sticky top-0 z-10 pt-24">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">Financial Dashboard</h1>
-              <p className="text-white/60 text-sm">Loan Management Analytics</p>
+              <h1 className="text-2xl font-bold text-white">Manager Dashboard</h1>
+              <p className="text-white/60 text-sm">Operational insights and actionable reports</p>
             </div>
             <div className="text-right">
               <div className="text-white/60 text-sm">Last Updated</div>
