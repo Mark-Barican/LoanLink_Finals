@@ -175,7 +175,10 @@ async function checkAndUpdateLoanStatus(loanId) {
 async function handleSinglePayment(paymentData) {
   const { repayment_id, amount, payment_date, method = 'cash' } = paymentData;
   
-  console.log('Creating single payment:', { repayment_id, amount, payment_date, method });
+  // Ensure amount is properly formatted to 2 decimal places
+  const formattedAmount = parseFloat(amount).toFixed(2);
+  
+  console.log('Creating single payment:', { repayment_id, amount: formattedAmount, payment_date, method });
   
   if (!repayment_id || !amount || !payment_date) {
     console.log('Missing required fields:', { repayment_id, amount, payment_date });
@@ -211,7 +214,7 @@ async function handleSinglePayment(paymentData) {
     // Insert the payment with paid_at set to current timestamp
     const paymentResult = await query(
       'INSERT INTO payments (repayment_id, amount, payment_date, method, paid_at) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [repayment_id, amount, payment_date, method, new Date().toISOString()]
+      [repayment_id, formattedAmount, payment_date, method, new Date().toISOString()]
     );
     
     console.log('Payment inserted:', paymentResult.rows[0]);
@@ -253,6 +256,9 @@ async function handleBulkPayments(payments) {
     for (const payment of payments) {
       const { repayment_id, amount, payment_date, method = 'cash' } = payment;
       
+      // Ensure amount is properly formatted to 2 decimal places
+      const formattedAmount = parseFloat(amount).toFixed(2);
+      
       if (!repayment_id || !amount || !payment_date) {
         await query('ROLLBACK');
         return Response.json({ error: 'Missing required fields in bulk payment' }, { status: 400 });
@@ -278,7 +284,7 @@ async function handleBulkPayments(payments) {
       // Insert the payment
       const paymentResult = await query(
         'INSERT INTO payments (repayment_id, amount, payment_date, method, paid_at) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [repayment_id, amount, payment_date, method, new Date().toISOString()]
+        [repayment_id, formattedAmount, payment_date, method, new Date().toISOString()]
       );
       
       // Update the repayment status to 'paid'
@@ -320,9 +326,12 @@ export async function PUT(request) {
       return Response.json({ error: 'Missing payment id' }, { status: 400 });
     }
     
+    // Ensure amount is properly formatted to 2 decimal places
+    const formattedAmount = parseFloat(amount).toFixed(2);
+    
     const result = await query(
       'UPDATE payments SET amount = $1, payment_date = $2, method = $3 WHERE id = $4 RETURNING *',
-      [amount, payment_date, method, id]
+      [formattedAmount, payment_date, method, id]
     );
     
     return Response.json(result.rows[0]);

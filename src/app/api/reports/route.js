@@ -40,9 +40,11 @@ export async function GET(request) {
       query('SELECT COUNT(*) as count FROM loans WHERE status = $1', ['active']).catch(() => ({ rows: [{ count: 0 }] }))
     ]);
 
-    // Get financial data - handle both old and new schema
-    const [loanAmounts, repaidAmounts, paidRepayments, unpaidRepayments, totalRepaymentsQuery] = await Promise.all([
+    // Get financial data - handle both old and new schema with Philippine calculations
+    const [loanAmounts, totalInterestAmounts, totalAmounts, repaidAmounts, paidRepayments, unpaidRepayments, totalRepaymentsQuery] = await Promise.all([
       query('SELECT COALESCE(SUM(principal), 0) as total FROM loans').catch(() => ({ rows: [{ total: 0 }] })),
+      query('SELECT COALESCE(SUM(total_interest), 0) as total FROM loans').catch(() => ({ rows: [{ total: 0 }] })),
+      query('SELECT COALESCE(SUM(total_amount), 0) as total FROM loans').catch(() => ({ rows: [{ total: 0 }] })),
       query('SELECT COALESCE(SUM(amount), 0) as total FROM payments').catch(() => ({ rows: [{ total: 0 }] })),
       query('SELECT COUNT(*) as count FROM repayments WHERE status = $1 OR paid = $2', ['paid', true]).catch(() => ({ rows: [{ count: 0 }] })),
       query('SELECT COUNT(*) as count FROM repayments WHERE status = $1 OR paid = $2', ['unpaid', false]).catch(() => ({ rows: [{ count: 0 }] })),
@@ -51,6 +53,8 @@ export async function GET(request) {
 
     // Calculate additional stats with proper outstanding balance calculation
     const totalLoanAmount = parseFloat(loanAmounts.rows[0]?.total || 0);
+    const totalInterestAmount = parseFloat(totalInterestAmounts.rows[0]?.total || 0);
+    const totalAmountToRepay = parseFloat(totalAmounts.rows[0]?.total || 0);
     const totalRepaid = parseFloat(repaidAmounts.rows[0]?.total || 0);
     const totalRepaymentsAmount = parseFloat(totalRepaymentsQuery.rows[0]?.total || 0);
     
@@ -227,7 +231,8 @@ export async function GET(request) {
         SELECT 
           c.name as company_name,
           COUNT(l.id) as loan_count,
-          COALESCE(SUM(l.principal), 0) as total_borrowed,
+          COALESCE(SUM(l.principal), 0) as total_principal,
+          COALESCE(SUM(l.total_interest), 0) as total_interest,
           COALESCE(SUM(p.amount), 0) as total_paid,
           CASE 
             WHEN COALESCE(SUM(l.principal), 0) > 0 
@@ -257,6 +262,8 @@ export async function GET(request) {
       activeLoans: parseInt(activeLoans.rows[0]?.count || 0),
       totalRepayments: parseInt(repayments.rows[0]?.count || 0),
       totalLoanAmount: totalLoanAmount,
+      totalInterestAmount: totalInterestAmount,
+      totalAmountToRepay: totalAmountToRepay,
       totalRepaid: totalRepaid,
       outstandingBalance: outstandingBalance,
       isOverpaid: isOverpaid,
@@ -274,7 +281,8 @@ export async function GET(request) {
       topPerformingCompanies: topPerformingCompanies.rows.map(row => ({
         company: row.company_name,
         loanCount: parseInt(row.loan_count),
-        totalBorrowed: parseFloat(row.total_borrowed),
+        totalPrincipal: parseFloat(row.total_principal),
+        totalInterest: parseFloat(row.total_interest),
         totalPaid: parseFloat(row.total_paid),
         repaymentRate: parseFloat(row.repayment_rate)
       })),

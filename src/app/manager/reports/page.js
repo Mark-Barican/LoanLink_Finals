@@ -587,40 +587,194 @@ export default function ReportsPage() {
             {stats.topPerformingCompanies && stats.topPerformingCompanies.length > 0 && (
               <div>
                 <h2 className="text-xl font-semibold text-white mb-6">Best Performing Clients</h2>
+                
+                {/* Performance Overview Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  <div className="bg-gradient-to-br from-green-500/10 to-green-600/10 rounded-xl p-6 border border-green-500/20">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="text-green-400 text-sm font-medium">Total Principal Lent</div>
+                      <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                      </svg>
+                    </div>
+                    <div className="text-2xl font-bold text-white">
+                      {formatCurrency(stats.topPerformingCompanies.reduce((sum, company) => sum + company.totalPrincipal, 0))}
+                    </div>
+                    <div className="text-green-400/60 text-sm mt-2">Across all top clients</div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 rounded-xl p-6 border border-orange-500/20">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="text-orange-400 text-sm font-medium">Total Interest Earned</div>
+                      <svg className="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                      </svg>
+                    </div>
+                    <div className="text-2xl font-bold text-white">
+                      {formatCurrency(stats.topPerformingCompanies.reduce((sum, company) => sum + company.totalInterest, 0))}
+                    </div>
+                    <div className="text-orange-400/60 text-sm mt-2">Philippine Add-On Method</div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-xl p-6 border border-blue-500/20">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="text-blue-400 text-sm font-medium">Average Repayment Rate</div>
+                      <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    </div>
+                    <div className="text-2xl font-bold text-white">
+                      {Math.round(stats.topPerformingCompanies.reduce((sum, company) => sum + company.repaymentRate, 0) / stats.topPerformingCompanies.length)}%
+                    </div>
+                    <div className="text-blue-400/60 text-sm mt-2">Collection efficiency</div>
+                  </div>
+                </div>
+
+                {/* Performance Chart */}
+                <div className="bg-white/5 rounded-xl p-6 border border-white/10 mb-8">
+                  <h3 className="text-lg font-semibold text-white mb-4">Client Performance Comparison</h3>
+                  <div className="h-80">
+                    <Bar 
+                      data={{
+                        labels: stats.topPerformingCompanies.map(item => item.company),
+                        datasets: [
+                          {
+                            label: 'Principal Amount',
+                            data: stats.topPerformingCompanies.map(item => item.totalPrincipal),
+                            backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                            borderColor: 'rgba(34, 197, 94, 1)',
+                            borderWidth: 1,
+                          },
+                          {
+                            label: 'Interest Earned',
+                            data: stats.topPerformingCompanies.map(item => item.totalInterest),
+                            backgroundColor: 'rgba(249, 115, 22, 0.8)',
+                            borderColor: 'rgba(249, 115, 22, 1)',
+                            borderWidth: 1,
+                          },
+                          {
+                            label: 'Amount Paid',
+                            data: stats.topPerformingCompanies.map(item => item.totalPaid),
+                            backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1,
+                          }
+                        ]
+                      }} 
+                      options={chartOptions} 
+                    />
+                  </div>
+                </div>
+
+                {/* Detailed Table with Enhanced Context */}
                 <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+                  <div className="p-6 border-b border-white/10">
+                    <h3 className="text-lg font-semibold text-white mb-2">Detailed Client Analysis</h3>
+                    <p className="text-white/60 text-sm">
+                      Performance metrics based on Philippine Add-On Interest Method. Shows principal amounts, calculated interest, 
+                      actual payments received, and repayment efficiency rates.
+                    </p>
+                  </div>
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead className="bg-white/5">
                         <tr>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-white">Company</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-white">Loans</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-white">Borrowed</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-white">Active Loans</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-white">Principal</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-white">Interest</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-white">Total Owed</th>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-white">Paid</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-white">Rate</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-white">Outstanding</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-white">Repayment Rate</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {stats.topPerformingCompanies.map((company, index) => (
-                          <tr key={index} className="border-t border-white/10 hover:bg-white/5 transition-colors">
-                            <td className="px-6 py-4 text-white font-medium">{company.company}</td>
-                            <td className="px-6 py-4 text-white/80">{company.loanCount}</td>
-                            <td className="px-6 py-4 text-white/80">{formatCurrency(company.totalBorrowed)}</td>
-                            <td className="px-6 py-4 text-white/80">{formatCurrency(company.totalPaid)}</td>
-                            <td className="px-6 py-4">
-                              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                company.repaymentRate >= 80 
-                                  ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                                  : company.repaymentRate >= 60
-                                  ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-                                  : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                              }`}>
-                                {company.repaymentRate}%
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
+                        {stats.topPerformingCompanies.map((company, index) => {
+                          const totalOwed = company.totalPrincipal + company.totalInterest;
+                          const outstanding = totalOwed - company.totalPaid;
+                          return (
+                            <tr key={index} className="border-t border-white/10 hover:bg-white/5 transition-colors">
+                              <td className="px-6 py-4 text-white font-medium">{company.company}</td>
+                              <td className="px-6 py-4 text-white/80">{company.loanCount}</td>
+                              <td className="px-6 py-4 text-white/80">{formatCurrency(company.totalPrincipal)}</td>
+                              <td className="px-6 py-4 text-orange-400">{formatCurrency(company.totalInterest)}</td>
+                              <td className="px-6 py-4 text-green-400 font-semibold">{formatCurrency(totalOwed)}</td>
+                              <td className="px-6 py-4 text-blue-400">{formatCurrency(company.totalPaid)}</td>
+                              <td className="px-6 py-4 text-red-400">{formatCurrency(outstanding)}</td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center space-x-2">
+                                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                    company.repaymentRate >= 80 
+                                      ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                      : company.repaymentRate >= 60
+                                      ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                                      : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                  }`}>
+                                    {company.repaymentRate}%
+                                  </span>
+                                  <div className="w-16 bg-white/10 rounded-full h-2">
+                                    <div 
+                                      className={`h-2 rounded-full ${
+                                        company.repaymentRate >= 80 ? 'bg-green-400' : 
+                                        company.repaymentRate >= 60 ? 'bg-yellow-400' : 'bg-red-400'
+                                      }`}
+                                      style={{ width: `${company.repaymentRate}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
+                  </div>
+                </div>
+
+                {/* Performance Insights */}
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-gradient-to-br from-green-500/5 to-green-600/5 rounded-xl p-6 border border-green-500/20">
+                    <h4 className="text-lg font-semibold text-white mb-4">Top Performers</h4>
+                    <div className="space-y-3">
+                      {stats.topPerformingCompanies.slice(0, 3).map((company, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                              index === 0 ? 'bg-yellow-500/20 text-yellow-400' :
+                              index === 1 ? 'bg-gray-500/20 text-gray-400' :
+                              'bg-orange-500/20 text-orange-400'
+                            }`}>
+                              {index + 1}
+                            </div>
+                            <span className="text-white font-medium">{company.company}</span>
+                          </div>
+                          <span className="text-green-400 font-semibold">{company.repaymentRate}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-blue-500/5 to-blue-600/5 rounded-xl p-6 border border-blue-500/20">
+                    <h4 className="text-lg font-semibold text-white mb-4">Key Insights</h4>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                        <span className="text-white/80">Average principal per client: {formatCurrency(stats.topPerformingCompanies.reduce((sum, company) => sum + company.totalPrincipal, 0) / stats.topPerformingCompanies.length)}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                        <span className="text-white/80">Average interest earned: {formatCurrency(stats.topPerformingCompanies.reduce((sum, company) => sum + company.totalInterest, 0) / stats.topPerformingCompanies.length)}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                        <span className="text-white/80">Total outstanding: {formatCurrency(stats.topPerformingCompanies.reduce((sum, company) => sum + (company.totalPrincipal + company.totalInterest - company.totalPaid), 0))}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                        <span className="text-white/80">Collection efficiency: {Math.round(stats.topPerformingCompanies.reduce((sum, company) => sum + company.repaymentRate, 0) / stats.topPerformingCompanies.length)}%</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
