@@ -98,6 +98,8 @@ CREATE TABLE loans (
   term_months INTEGER NOT NULL,
   start_date DATE NOT NULL,
   end_date DATE,
+  total_interest DECIMAL(15,2) NOT NULL,
+  total_amount DECIMAL(15,2) NOT NULL,
   status VARCHAR(50) DEFAULT 'active',
   created_by INTEGER REFERENCES users(id),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

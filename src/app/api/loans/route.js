@@ -27,32 +27,32 @@ async function generateLoanCode() {
 
 function computeRepaymentSchedule(principal, interest_rate, term_months, start_date) {
   try {
-    // Simple equal monthly payment schedule
-    const payments = [];
-    const monthly_rate = interest_rate / 100 / 12;
-    const n = term_months;
+    // Philippine Add-On Interest Method
+    // Total Interest = Principal × Interest Rate × Loan Term (in years)
+    // Total Amount = Principal + Total Interest
+    // Monthly Payment = Total Amount ÷ Number of Months
     
-    if (monthly_rate === 0) {
-      // Handle zero interest rate case
-      const monthlyPayment = principal / n;
-      let date = new Date(start_date);
-      for (let i = 0; i < n; i++) {
-        payments.push({
-          due_date: new Date(date.getFullYear(), date.getMonth() + i, date.getDate()),
-          amount: Math.round(monthlyPayment * 100) / 100,
-        });
-      }
-    } else {
-      const pmt = principal * monthly_rate / (1 - Math.pow(1 + monthly_rate, -n));
-      let date = new Date(start_date);
-      for (let i = 0; i < n; i++) {
-        payments.push({
-          due_date: new Date(date.getFullYear(), date.getMonth() + i, date.getDate()),
-          amount: Math.round(pmt * 100) / 100,
-        });
-      }
+    const payments = [];
+    const term_years = term_months / 12;
+    const total_interest = parseFloat((principal * (interest_rate / 100) * term_years).toFixed(2));
+    const total_amount = parseFloat((principal + total_interest).toFixed(2));
+    const monthly_payment = parseFloat((total_amount / term_months).toFixed(2));
+    
+    let date = new Date(start_date);
+    
+    for (let i = 0; i < term_months; i++) {
+      payments.push({
+        due_date: new Date(date.getFullYear(), date.getMonth() + i, date.getDate()),
+        amount: parseFloat(monthly_payment.toFixed(2)),
+      });
     }
-    return payments;
+    
+    return {
+      payments,
+      total_interest: parseFloat(total_interest.toFixed(2)),
+      total_amount: parseFloat(total_amount.toFixed(2)),
+      monthly_payment: parseFloat(monthly_payment.toFixed(2))
+    };
   } catch (error) {
     console.error('Error computing repayment schedule:', error);
     throw error;
@@ -111,19 +111,21 @@ export async function POST(request) {
     const code = await generateLoanCode();
     console.log('Generated loan code:', code);
     
-    // Insert the loan
+    // Compute loan details using Philippine Add-On Interest Method
+    const loanCalculation = computeRepaymentSchedule(principalNum, interestRateNum, termMonthsNum, start_date);
+    
+    // Insert the loan with total_interest field
     const loanResult = await query(
-      'INSERT INTO loans (company_id, code, principal, interest_rate, term_months, start_date, created_by, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-      [company_id, code, principalNum, interestRateNum, termMonthsNum, start_date, created_by, 'active']
+      'INSERT INTO loans (company_id, code, principal, interest_rate, term_months, start_date, created_by, status, total_interest, total_amount) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+      [company_id, code, principalNum, interestRateNum, termMonthsNum, start_date, created_by, 'active', loanCalculation.total_interest, loanCalculation.total_amount]
     );
 
     console.log('Loan created:', loanResult.rows[0]);
 
     // Compute and insert repayment schedule
-    const repayments = computeRepaymentSchedule(principalNum, interestRateNum, termMonthsNum, start_date);
-    console.log('Computed repayments:', repayments.length);
+    console.log('Computed repayments:', loanCalculation.payments.length);
     
-    for (const r of repayments) {
+    for (const r of loanCalculation.payments) {
       await query(
         'INSERT INTO repayments (loan_id, due_date, amount, status) VALUES ($1, $2, $3, $4)',
         [loanResult.rows[0].id, r.due_date, r.amount, 'unpaid']

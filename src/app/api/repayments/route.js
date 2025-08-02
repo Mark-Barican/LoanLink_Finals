@@ -110,9 +110,13 @@ export async function POST(request) {
   if (!loan_id || !due_date || !amount) {
     return Response.json({ error: 'Missing fields' }, { status: 400 });
   }
+  
+  // Ensure amount is properly formatted to 2 decimal places
+  const formattedAmount = parseFloat(amount).toFixed(2);
+  
   const result = await query(
     'INSERT INTO repayments (loan_id, due_date, amount, status) VALUES ($1, $2, $3, $4) RETURNING *',
-    [loan_id, due_date, amount, status]
+    [loan_id, due_date, formattedAmount, status]
   );
   return Response.json(result.rows[0], { status: 201 });
 }
@@ -126,13 +130,16 @@ export async function PUT(request) {
     return Response.json({ error: 'Missing repayment id' }, { status: 400 });
   }
   
+  // Ensure amount is properly formatted to 2 decimal places
+  const formattedAmount = amount ? parseFloat(amount).toFixed(2) : null;
+  
   // Update both status and paid fields for compatibility
   const paid = status === 'paid';
   const paid_at = status === 'paid' ? new Date().toISOString() : null;
   
   const result = await query(
     'UPDATE repayments SET due_date = $1, amount = $2, status = $3, paid = $4, paid_at = $5 WHERE id = $6 RETURNING *',
-    [due_date, amount, status, paid, paid_at, id]
+    [due_date, formattedAmount, status, paid, paid_at, id]
   );
   return Response.json(result.rows[0], { status: 200 });
 }
