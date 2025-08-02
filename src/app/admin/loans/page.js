@@ -205,7 +205,9 @@ export default function LoanManagement() {
     if (!amount) return '₱0.00';
     return new Intl.NumberFormat('en-PH', {
       style: 'currency',
-      currency: 'PHP'
+      currency: 'PHP',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(amount);
   }
 
@@ -269,9 +271,9 @@ export default function LoanManagement() {
                       step="0.01"
                       min="0"
                       value={form.principal} 
-                      onChange={e => setForm(f => ({ ...f, principal: e.target.value }))} 
+                      onChange={e => setForm(f => ({ ...f, principal: parseFloat(e.target.value).toFixed(2) }))} 
                       required 
-                      placeholder="Enter loan amount"
+                      placeholder="Enter loan amount (e.g., 100000.00)"
                       className="w-full border border-white/30 bg-white/10 rounded-lg px-3 py-2 text-white placeholder-white/60 backdrop-blur-sm focus:outline-none focus:border-green-400/50" 
                     />
                   </div>
@@ -285,9 +287,9 @@ export default function LoanManagement() {
                         min="0"
                         max="100"
                         value={form.interest_rate} 
-                        onChange={e => setForm(f => ({ ...f, interest_rate: e.target.value }))} 
+                        onChange={e => setForm(f => ({ ...f, interest_rate: parseFloat(e.target.value).toFixed(2) }))} 
                         required 
-                        placeholder="Rate"
+                        placeholder="Rate (e.g., 12.00)"
                         className="w-full border border-white/30 bg-white/10 rounded-lg px-3 py-2 text-white placeholder-white/60 backdrop-blur-sm focus:outline-none focus:border-green-400/50" 
                       />
                     </div>
@@ -373,6 +375,8 @@ export default function LoanManagement() {
                         <th className="py-3 px-3">Code</th>
                         <th className="py-3 px-3">Company</th>
                         <th className="py-3 px-3">Principal</th>
+                        <th className="py-3 px-3">Interest</th>
+                        <th className="py-3 px-3">Total Amount</th>
                         <th className="py-3 px-3">Rate</th>
                         <th className="py-3 px-3">Term</th>
                         <th className="py-3 px-3">Start Date</th>
@@ -385,7 +389,7 @@ export default function LoanManagement() {
                     <tbody>
                       {loans.length === 0 ? (
                         <tr>
-                          <td colSpan="10" className="text-center py-8 text-white/60">
+                          <td colSpan="12" className="text-center py-8 text-white/60">
                             No loans found. Use the form to create your first loan.
                           </td>
                         </tr>
@@ -395,6 +399,8 @@ export default function LoanManagement() {
                             <td className="py-3 px-3 font-mono text-green-400">{l.code}</td>
                             <td className="py-3 px-3">{companies.find(c => c.id === l.company_id)?.name || 'Unknown Company'}</td>
                             <td className="py-3 px-3">{formatCurrency(l.principal)}</td>
+                            <td className="py-3 px-3 text-orange-400">{formatCurrency(l.total_interest || 0)}</td>
+                            <td className="py-3 px-3 font-semibold text-green-400">{formatCurrency(l.total_amount || l.principal)}</td>
                             <td className="py-3 px-3">{l.interest_rate}%</td>
                             <td className="py-3 px-3">{l.term_months} months</td>
                             <td className="py-3 px-3">{formatDate(l.start_date)}</td>

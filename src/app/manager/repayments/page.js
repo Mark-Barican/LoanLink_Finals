@@ -183,8 +183,8 @@ export default function RepaymentManagement() {
     return new Intl.NumberFormat('en-PH', {
       style: 'currency',
       currency: 'PHP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(amount);
   }
 
@@ -478,9 +478,9 @@ export default function RepaymentManagement() {
                     type="number"
                     step="0.01"
                     value={form.amount}
-                    onChange={(e) => setForm({...form, amount: e.target.value})}
+                    onChange={(e) => setForm({...form, amount: parseFloat(e.target.value).toFixed(2)})}
                     className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-white/40 focus:outline-none focus:border-blue-400"
-                    placeholder="Enter repayment amount"
+                    placeholder="Enter amount (e.g., 1000.00)"
                     required
                   />
                 </div>

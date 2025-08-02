@@ -46,8 +46,8 @@ export default function StaffLoans() {
     return new Intl.NumberFormat('en-PH', {
       style: 'currency',
       currency: 'PHP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(amount);
   }
 
@@ -219,10 +219,24 @@ function LoanCard({ loan, formatCurrency, formatDate, getStatusColor }) {
         </div>
 
         <div className="flex items-center space-x-2">
+          <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+          <span className="text-orange-400 text-sm">{formatCurrency(loan.total_interest || 0)} interest</span>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-green-400 font-semibold text-sm">Total: {formatCurrency(loan.total_amount || loan.principal)}</span>
+        </div>
+
+        <div className="flex items-center space-x-2">
           <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
-          <span className="text-white/60 text-sm">{loan.interest_rate}% interest</span>
+          <span className="text-white/60 text-sm">{loan.interest_rate}% rate</span>
         </div>
 
         <div className="flex items-center space-x-2">

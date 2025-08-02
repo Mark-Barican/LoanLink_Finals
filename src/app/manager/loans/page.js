@@ -75,7 +75,9 @@ export default function ManagerLoanManagement() {
   function formatCurrency(amount) {
     return new Intl.NumberFormat('en-PH', {
       style: 'currency',
-      currency: 'PHP'
+      currency: 'PHP',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(amount);
   }
 
@@ -214,6 +216,8 @@ export default function ManagerLoanManagement() {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Company</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Principal</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Interest</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Total Amount</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Interest Rate</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Term</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Start Date</th>
@@ -229,6 +233,12 @@ export default function ManagerLoanManagement() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                       {formatCurrency(loan.principal)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-orange-400">
+                      {formatCurrency(loan.total_interest || 0)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-400">
+                      {formatCurrency(loan.total_amount || loan.principal)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                       {loan.interest_rate}%
@@ -285,6 +295,16 @@ export default function ManagerLoanManagement() {
                   <div>
                     <label className="block text-sm font-medium text-slate-400">Principal Amount</label>
                     <p className="mt-1 text-sm text-white">{formatCurrency(selectedLoan.principal)}</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-slate-400">Total Interest</label>
+                    <p className="mt-1 text-sm text-orange-400">{formatCurrency(selectedLoan.total_interest || 0)}</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-slate-400">Total Amount</label>
+                    <p className="mt-1 text-sm font-semibold text-green-400">{formatCurrency(selectedLoan.total_amount || selectedLoan.principal)}</p>
                   </div>
                   
                   <div>
