@@ -107,26 +107,32 @@ payments (id, repayment_id, amount, payment_date, method, paid_at, created_at)
 ```
 src/
 ├── app/
-│   ├── admin/           # Admin dashboard (Green theme)
+│   ├── components/      # The interface, written once
+│   │   ├── AppShell.js  # Route guard, sidebar, page column
+│   │   ├── Sidebar.js   # Role-driven navigation
+│   │   ├── ui.js        # Buttons, fields, tables, modals, status pills
+│   │   └── pages/       # Screens shared by every role
+│   ├── admin/           # Route wrappers: full access
 │   │   ├── companies/   # Company management
-│   │   ├── loans/       # Loan management
+│   │   ├── loans/[id]/  # Loan register and detail
 │   │   ├── payments/    # Payment tracking
 │   │   ├── repayments/  # Repayment schedules
-│   │   ├── reports/     # Analytics & reporting
-│   │   └── users/       # User management
-│   ├── manager/         # Manager dashboard (Blue theme)
-│   │   ├── companies/   # Company overview
-│   │   ├── loans/       # Loan processing
+│   │   ├── reports/     # Analytics and reporting
+│   │   └── users/       # User management, all roles
+│   ├── manager/         # Route wrappers: portfolio plus staff accounts
+│   │   ├── dashboard/   # Manager landing screen
+│   │   ├── companies/   # Company management
+│   │   ├── loans/[id]/  # Loan register and detail
 │   │   ├── payments/    # Payment management
 │   │   ├── repayments/  # Repayment tracking
 │   │   ├── reports/     # Performance analytics
-│   │   └── staff/       # Staff management
-│   ├── staff/           # Staff dashboard (Orange theme)
-│   │   ├── companies/   # Company information
-│   │   ├── loans/       # Loan details
-│   │   ├── payments/    # Payment records
+│   │   └── staff/       # Staff accounts only
+│   ├── staff/           # Route wrappers: collections work
+│   │   ├── companies/   # Company directory, read only
+│   │   ├── loans/[id]/  # Loan register and detail, read only
+│   │   ├── payments/    # Record and reverse payments
 │   │   ├── repayments/  # Repayment management
-│   │   └── reports/     # Basic reporting
+│   │   └── reports/     # Overview and collections
 │   ├── api/             # REST API endpoints
 │   │   ├── auth/        # Authentication routes
 │   │   ├── companies/   # Company CRUD operations
@@ -164,11 +170,11 @@ src/
 
 ### Authentication & Authorization System
 **Secure Multi-Role Access Control**
-- **Role-Based Authentication**: Secure login system with JWT token management
-- **Role-Specific Themes**: Visual distinction with color-coded interfaces (Admin: Green, Manager: Blue, Staff: Orange)
-- **Permission Management**: Granular access control based on user roles
-- **Session Management**: Automatic token refresh and secure session handling
-- **Error Handling**: Comprehensive error feedback and user guidance
+- **Role-Based Authentication**: Sign-in resolves the user's role, which the client stores and sends on every API call
+- **One Interface for All Roles**: A single design system across Admin, Manager and Staff. Roles differ in what they can reach and act on, not in colour scheme
+- **Route Guarding**: `AppShell` checks the session before rendering. A signed-in user who opens a route above their role lands on their own dashboard rather than the sign-in page
+- **Permission Management**: Granular access control enforced server-side on the `x-user-role` header, with the interface hiding actions the API would reject
+- **Error Handling**: API failures surface as inline messages carrying the server's reason, not a generic failure notice
 
 ### Dashboard & Analytics
 **Comprehensive Business Intelligence**
@@ -240,50 +246,57 @@ src/
 
 ### Challenge 1: Role-Based Access Control Implementation
 
-**Problem**: Implementing secure role-based access control across different user types with varying permissions and UI themes.
+**Problem**: Three roles need the same screens with different powers. The first version solved this by copying each page three times, which meant a fix to the loans table had to be made three times and usually was not.
 
 **Solution**:
-- **JWT Token Management**: Implemented secure token-based authentication with role information
-- **API Route Protection**: Created middleware to verify user roles via `x-user-role` headers
-- **Theme Consistency**: Established color-coded themes (Admin: Green, Manager: Blue, Staff: Orange)
-- **Component Reusability**: Built role-agnostic components with conditional rendering based on permissions
+- **API Route Protection**: Every route authorises on the `x-user-role` header before touching the database
+- **One Screen Per Job**: Each screen lives once in `components/pages/`. The role routes are wrappers that pass `canEdit` and a `basePath`
+- **Guarding in One Place**: `AppShell` reads the session and redirects, replacing the localStorage check that was repeated at the top of all twenty pages
+- **Permissions Match the API**: The interface only offers actions the API will accept, so staff never see an Edit button that returns 403
 
 **Code Example**:
 ```javascript
-// API Route Protection
-function isAuthorized(request) {
+// API route protection, unchanged in shape
+function isAdminOrManager(request) {
   const role = request.headers.get('x-user-role');
-  return role === 'admin' || role === 'manager' || role === 'staff';
+  return role === 'admin' || role === 'manager';
 }
 
-// Theme Implementation
-const themeColors = {
-  admin: 'green',
-  manager: 'blue', 
-  staff: 'orange'
-};
+// A role route is now a wrapper around a shared screen
+export default function StaffLoansRoute() {
+  return (
+    <AppShell allow={["staff"]}>
+      <LoansPage basePath="/staff" canEdit={false} />
+    </AppShell>
+  );
+}
 ```
 
 ### Challenge 2: Real-Time Data Synchronization
 
-**Problem**: Ensuring data consistency across multiple users and preventing conflicts during concurrent operations.
+**Problem**: Recording a payment writes three things: the payment row, the repayment status, and possibly the loan status. These have to succeed or fail together. The original code issued `BEGIN` and `COMMIT` through the connection pool, which hands each statement to whichever client happens to be free, so the statements could land on different connections and the transaction guaranteed nothing.
 
 **Solution**:
-- **Database Transactions**: Implemented ACID-compliant transactions for critical operations
-- **Optimistic Locking**: Used version control for data updates
-- **Real-time Refresh**: Automatic data refresh after CRUD operations
-- **Error Handling**: Comprehensive error handling with user feedback
+- **One Client Per Transaction**: `withTransaction` checks a client out of the pool and runs every statement on it, then commits or rolls back and releases it
+- **Row Locking**: Repayments are selected `FOR UPDATE` so two people settling the same instalment cannot both succeed
+- **Loan Status Follows the Data**: A loan flips to completed when its last instalment is settled, and back to active when a payment is reversed
+- **Refresh After Write**: Screens refetch after each change rather than patching local state, so what is on screen matches the database
 
 **Code Example**:
 ```javascript
-// Transaction Example
-await query('BEGIN');
-try {
-  // Perform operations
-  await query('COMMIT');
-} catch (error) {
-  await query('ROLLBACK');
-  throw error;
+export async function withTransaction(run) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await run((text, params) => client.query(text, params));
+    await client.query('COMMIT');
+    return result;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 ```
 

@@ -62,71 +62,80 @@ NEXTAUTH_URL="https://your-app.vercel.app"
 
 ### 4. Set up the database
 
-Create the necessary tables in your PostgreSQL database:
+Create the necessary tables in your PostgreSQL database. Primary keys are UUIDs,
+which is what the deployed database uses.
 
 ```sql
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- Users table
 CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  role VARCHAR(50) DEFAULT 'staff',
-  department VARCHAR(100) DEFAULT 'operations',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'staff',
+  department TEXT DEFAULT 'operations',
+  name TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Companies table
 CREATE TABLE companies (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  industry VARCHAR(100),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  industry TEXT,
   address TEXT,
-  tin VARCHAR(50),
-  contact_person VARCHAR(255),
-  phone VARCHAR(50),
-  email VARCHAR(255),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  tin TEXT,
+  contact_person TEXT,
+  phone TEXT,
+  email TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Loans table
 CREATE TABLE loans (
-  id SERIAL PRIMARY KEY,
-  company_id INTEGER REFERENCES companies(id),
-  code VARCHAR(50) UNIQUE NOT NULL,
-  principal DECIMAL(15,2) NOT NULL,
-  interest_rate DECIMAL(5,2) NOT NULL,
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id UUID REFERENCES companies(id),
+  code TEXT UNIQUE NOT NULL,
+  principal NUMERIC(15,2) NOT NULL,
+  interest_rate NUMERIC(5,2) NOT NULL,
   term_months INTEGER NOT NULL,
   start_date DATE NOT NULL,
-  end_date DATE,
-  total_interest DECIMAL(15,2) NOT NULL,
-  total_amount DECIMAL(15,2) NOT NULL,
-  status VARCHAR(50) DEFAULT 'active',
-  created_by INTEGER REFERENCES users(id),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  total_interest NUMERIC(15,2),
+  total_amount NUMERIC(15,2),
+  status TEXT DEFAULT 'active',
+  created_by UUID NOT NULL REFERENCES users(id),
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Repayments table
 CREATE TABLE repayments (
-  id SERIAL PRIMARY KEY,
-  loan_id INTEGER REFERENCES loans(id),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  loan_id UUID REFERENCES loans(id),
   due_date DATE NOT NULL,
-  amount DECIMAL(15,2) NOT NULL,
-  status VARCHAR(50) DEFAULT 'unpaid',
+  amount NUMERIC(15,2) NOT NULL,
+  status TEXT DEFAULT 'unpaid',
   paid BOOLEAN DEFAULT FALSE,
-  paid_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  paid_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Payments table
 CREATE TABLE payments (
-  id SERIAL PRIMARY KEY,
-  repayment_id INTEGER REFERENCES repayments(id),
-  amount DECIMAL(15,2) NOT NULL,
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  repayment_id UUID NOT NULL REFERENCES repayments(id),
+  amount NUMERIC(15,2) NOT NULL,
   payment_date DATE NOT NULL,
-  method VARCHAR(50) DEFAULT 'cash',
-  paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  method TEXT DEFAULT 'cash',
+  created_by UUID REFERENCES users(id),
+  paid_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Indexes the list and report queries rely on
+CREATE INDEX ON loans (company_id);
+CREATE INDEX ON repayments (loan_id, due_date);
+CREATE INDEX ON payments (repayment_id);
 ```
 
 ### 5. Run the development server
@@ -167,24 +176,89 @@ For production, we recommend using:
 
 The system supports multi-role authentication with admin, manager, and staff roles. Users can be created through the application interface or directly in the database.
 
+### Demo accounts
+
+Three seeded accounts sign in on a fresh database. They are created on first
+successful sign-in by `src/app/api/auth/signin/route.js`, which recognises these
+three addresses and their fixed passwords.
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `mark_barican@example.com` | `admin123` |
+| Manager | `manager@example.com` | `manager123` |
+| Staff | `staff@example.com` | `staff123` |
+
+These are demonstration credentials. Remove the `demoUsers` block in the sign-in
+route before putting this in front of real data, so every account is checked
+against its bcrypt hash.
+
+### What each role can do
+
+| Area | Admin | Manager | Staff |
+|---|---|---|---|
+| Companies | Full | Full | Read only |
+| Loans | Full | Full | Read only |
+| Repayments | Full | Full | Full |
+| Payments | Full | Full | Full |
+| Reports | Full | Full | Overview and collections |
+| Accounts | All roles | Staff only | None |
+
+Self-registration creates a staff account. An administrator can change the role
+afterwards.
+
 ## 📁 Project Structure
+
+Each role's routes are thin wrappers. They mount `AppShell` with the roles that
+are allowed there, then render a shared screen with the permissions that role
+has. The screen itself is written once.
 
 ```
 src/
 ├── app/
-│   ├── admin/           # Admin dashboard pages
-│   ├── api/            # API routes
-│   ├── auth/           # Authentication pages
-│   ├── manager/        # Manager dashboard
-│   ├── staff/          # Staff dashboard
-│   ├── error.js        # Global error boundary
-│   ├── loading.js      # Global loading component
-│   ├── not-found.js    # 404 page
-│   ├── layout.js       # Root layout
-│   └── page.js         # Home page
-├── components/         # Reusable components
-└── lib/               # Utility functions
+│   ├── components/
+│   │   ├── AppShell.js      # Route guard, sidebar, page column
+│   │   ├── Sidebar.js       # Role-driven navigation
+│   │   ├── ui.js            # Buttons, fields, tables, modals, status pills
+│   │   └── pages/           # The screens, shared across roles
+│   │       ├── CompaniesPage.js
+│   │       ├── DashboardPage.js
+│   │       ├── LoanDetailPage.js
+│   │       ├── LoansPage.js
+│   │       ├── PaymentsPage.js
+│   │       ├── RepaymentsPage.js
+│   │       ├── ReportsPage.js
+│   │       └── UsersPage.js
+│   ├── admin/               # /admin routes
+│   ├── manager/             # /manager routes
+│   ├── staff/               # /staff routes
+│   ├── api/                 # REST endpoints
+│   ├── auth/                # Sign in and registration
+│   ├── globals.css          # Design tokens
+│   ├── layout.js            # Root layout and fonts
+│   ├── error.js
+│   ├── loading.js
+│   └── not-found.js
+└── lib/
+    ├── format.js            # Currency, dates, labels, interest maths
+    └── session.js           # Session helpers and the API client
 ```
+
+## 🎨 Design
+
+A light operations console rather than a marketing page. The rules the interface
+holds to:
+
+- **Surfaces**: white page, `#fafaf9` fills, 1px `#e7e5e4` hairlines. No glass,
+  no blur, no gradients, no drop shadows outside modals.
+- **Colour**: forest green `#1b6b45` for actions, active navigation and focus.
+  Green, amber, red and grey appear elsewhere only as loan and repayment status,
+  where the colour carries the meaning.
+- **Type**: IBM Plex Sans, with IBM Plex Mono for loan codes and TINs. Every
+  figure uses tabular numerals so columns of money line up.
+- **Tables**: money and counts are right-aligned, labels are uppercase 11px, and
+  wide tables scroll inside their own container so the page never scrolls
+  sideways.
+- **Layout**: a fixed 240px sidebar from 1024px up, a slide-over below that.
 
 ## 🔧 Available Scripts
 

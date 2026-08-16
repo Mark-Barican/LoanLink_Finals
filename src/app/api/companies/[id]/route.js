@@ -7,10 +7,10 @@ function isAdminOrManager(request) {
 
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
-    
+    const { id } = await params;
+
     const result = await query('SELECT * FROM companies WHERE id = $1', [id]);
-    
+
     if (result.rows.length === 0) {
       return Response.json({ error: 'Company not found' }, { status: 404 });
     }
@@ -27,10 +27,10 @@ export async function PUT(request, { params }) {
     if (!isAdminOrManager(request)) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
-    
-    const { id } = params;
+
+    const { id } = await params;
     const { name, industry, address, tin, contact_person, phone, email } = await request.json();
-    
+
     if (!id || !name) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
@@ -56,15 +56,24 @@ export async function DELETE(request, { params }) {
     if (!isAdminOrManager(request)) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
-    
-    const { id } = params;
-    
+
+    const { id } = await params;
+
     if (!id) {
       return Response.json({ error: 'Missing company id' }, { status: 400 });
     }
 
+    // Refuse rather than cascade: deleting a borrower with live loans would
+    // silently take its repayment history with it.
+    const loans = await query('SELECT COUNT(*)::int AS count FROM loans WHERE company_id = $1', [id]);
+    if (loans.rows[0].count > 0) {
+      return Response.json({
+        error: `This company still has ${loans.rows[0].count} loan${loans.rows[0].count === 1 ? '' : 's'}. Delete or reassign them first.`,
+      }, { status: 409 });
+    }
+
     const result = await query('DELETE FROM companies WHERE id = $1 RETURNING *', [id]);
-    
+
     if (result.rows.length === 0) {
       return Response.json({ error: 'Company not found' }, { status: 404 });
     }
@@ -74,4 +83,4 @@ export async function DELETE(request, { params }) {
     console.error('DELETE company error:', error);
     return Response.json({ error: 'Failed to delete company' }, { status: 500 });
   }
-} 
+}

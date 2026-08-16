@@ -1,32 +1,21 @@
-'use client';
-
-import Link from 'next/link';
+import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-      <div className="backdrop-blur-md bg-white/10 rounded-2xl border border-white/20 p-8 max-w-md w-full mx-4">
-        <div className="text-center">
-          <div className="text-orange-400 text-6xl mb-4">🔍</div>
-          <h2 className="text-2xl font-bold text-white mb-4">Page Not Found</h2>
-          <p className="text-white/60 mb-6">
-            Sorry, we couldn&apos;t find the page you&apos;re looking for. It might have been moved or deleted.
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Link
-              href="/"
-              className="bg-green-400 hover:bg-green-300 text-slate-900 rounded-lg px-6 py-3 font-semibold transition-colors"
-            >
-              Go home
-            </Link>
-            <button
-              onClick={() => window.history.back()}
-              className="bg-white/20 hover:bg-white/30 text-white rounded-lg px-6 py-3 font-semibold transition-colors"
-            >
-              Go back
-            </button>
-          </div>
-        </div>
+    <div className="flex min-h-screen items-center justify-center bg-surface px-4">
+      <div className="w-full max-w-md rounded-[6px] border border-line bg-canvas p-6">
+        <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted">Error 404</p>
+        <h1 className="mt-2 text-[15px] font-semibold text-ink">Page not found</h1>
+        <p className="mt-2 text-[13px] text-muted">
+          That address does not match anything in LoanLink. It may have been moved, or the record
+          it pointed to was deleted.
+        </p>
+        <Link
+          href="/auth"
+          className="mt-5 inline-flex h-[34px] items-center rounded-[5px] bg-accent px-3.5 text-[13px] font-medium text-white hover:bg-accent-hover"
+        >
+          Back to sign in
+        </Link>
       </div>
     </div>
   );

@@ -1,80 +1,48 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const plexSans = IBM_Plex_Sans({
+  variable: "--font-plex-sans",
   subsets: ["latin"],
-  display: 'swap',
+  weight: ["400", "500", "600"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
   subsets: ["latin"],
-  display: 'swap',
+  weight: ["400", "500"],
+  display: "swap",
 });
 
 export const metadata = {
   title: {
-    default: "LoanLink - Professional Loan Management System",
-    template: "%s | LoanLink"
+    default: "LoanLink",
+    template: "%s | LoanLink",
   },
-  description: "Professional loan management system for lending companies. Manage loans, payments, and client relationships efficiently.",
-  keywords: ["loan management", "lending", "finance", "payments", "business"],
-  authors: [{ name: "LoanLink Team" }],
-  creator: "LoanLink",
-  publisher: "LoanLink",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
-  alternates: {
-    canonical: '/',
-  },
-  openGraph: {
-    title: "LoanLink - Professional Loan Management System",
-    description: "Professional loan management system for lending companies",
-    url: '/',
-    siteName: 'LoanLink',
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: "LoanLink - Professional Loan Management System",
-    description: "Professional loan management system for lending companies",
+  description:
+    "Loan portfolio, repayment schedules and collections for lending operations.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/favicon.svg",
   },
   robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
+    index: false,
+    follow: false,
   },
-  verification: {
-    google: process.env.GOOGLE_VERIFICATION,
-  },
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <head>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/favicon.svg" />
-        <meta name="theme-color" content="#000000" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-      </head>
-      <body className="antialiased min-h-screen bg-slate-950 text-white">
-        <main>
-          {children}
-        </main>
-      </body>
+    <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
+      <body className="min-h-screen bg-canvas text-ink">{children}</body>
     </html>
   );
 }
